@@ -1,65 +1,115 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import ScreenSaver from "../components/ScreenSaver";
+import BranchLoginScreen from "../components/BranchLoginScreen";
+import ScanScreen from "../components/ScanScreen";
+import ResultScreen from "../components/ResultScreen";
+import { Branch, Product } from "../lib/mockData";
+
+const IDLE_TIMEOUT = 15; // seconds before screensaver
 
 export default function Home() {
+  const [branch, setBranch] = useState<Branch | null>(null);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [screensaver, setScreensaver] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
+  const idleRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetIdle = useCallback(() => {
+    if (idleRef.current) clearTimeout(idleRef.current);
+    if (screensaver) return; // let screensaver handle its own click
+    idleRef.current = setTimeout(() => setScreensaver(true), IDLE_TIMEOUT * 1000);
+  }, [screensaver]);
+
+  useEffect(() => {
+    // Manejo de eventos de inactividad
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    const handleEvent = () => resetIdle();
+    
+    events.forEach(e => window.addEventListener(e, handleEvent, { passive: true }));
+    resetIdle();
+    
+    // Manejo de conexión de red
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    // Set inicial de estado de red
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setIsOffline(true);
+    }
+
+    return () => {
+      events.forEach(e => window.removeEventListener(e, handleEvent));
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      if (idleRef.current) clearTimeout(idleRef.current);
+    };
+  }, [resetIdle]);
+
+  const handleDismissScreensaver = () => {
+    setScreensaver(false);
+    if (idleRef.current) clearTimeout(idleRef.current);
+    idleRef.current = setTimeout(() => setScreensaver(true), IDLE_TIMEOUT * 1000);
+  };
+
+  const storeName = branch ? `Ariat — ${branch.name}` : 'Ariat';
+
+  if (isOffline) {
+    return (
+      <div style={{
+        width: '100%', minHeight: '100vh', 
+        display: 'flex', flexDirection: 'column', 
+        alignItems: 'center', justifyContent: 'center',
+        background: 'var(--surface-alt)',
+        padding: 32, textAlign: 'center'
+      }}>
+        <div style={{
+          width: 88, height: 88, borderRadius: '50%',
+          background: 'var(--err-bg)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 18px',
+          color: 'var(--error)',
+          fontSize: 32, fontWeight: 900
+        }}>
+          !
+        </div>
+        <h1 style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.04em', marginBottom: 12 }}>
+          Sin conexión
+        </h1>
+        <p style={{ fontSize: 16, color: 'var(--text-muted)', maxWidth: 400, margin: '0 auto', lineHeight: 1.55 }}>
+          Problemas de conexión a Internet. Por favor, acércate a un asociado.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div style={{ width: '100%', minHeight: '100vh', position: 'relative' }}>
+      {product ? (
+        <ResultScreen 
+          key={product.sku} 
+          product={product} 
+          onBack={() => setProduct(null)} 
+          storeName={storeName} 
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      ) : (
+        <ScanScreen 
+          onResult={setProduct} 
+          storeName={storeName} 
+        />
+      )}
+      
+      {!branch && !screensaver && (
+        <BranchLoginScreen onLogin={setBranch} />
+      )}
+      
+      {screensaver && (
+        <ScreenSaver onDismiss={handleDismissScreensaver} />
+      )}
     </div>
   );
 }

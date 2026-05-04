@@ -5,12 +5,12 @@ import ScreenSaver from "../components/ScreenSaver";
 import BranchLoginScreen from "../components/BranchLoginScreen";
 import ScanScreen from "../components/ScanScreen";
 import ResultScreen from "../components/ResultScreen";
-import { Branch, Product } from "../lib/mockData";
+import { Location, Product } from "../lib/types";
 
 const IDLE_TIMEOUT = 15; // seconds before screensaver
 
 export default function Home() {
-  const [branch, setBranch] = useState<Branch | null>(null);
+  const [branch, setBranch] = useState<Location | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [screensaver, setScreensaver] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
@@ -90,8 +90,8 @@ export default function Home() {
   return (
     <div style={{ width: '100%', minHeight: '100vh', position: 'relative' }}>
       {product ? (
-        <ResultScreen 
-          key={product.sku} 
+        <ResultScreen
+          key={product.name}
           product={product} 
           onBack={() => setProduct(null)} 
           storeName={storeName} 

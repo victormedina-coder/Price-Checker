@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, Store } from "./Icons";
-import { Product, BranchStock } from "../lib/mockData";
+import { Product, Stock } from "../lib/types";
 
 const TIMER_SECONDS = 15;
 
@@ -36,81 +36,47 @@ function TimerRing({ seconds, total }: { seconds: number; total: number }) {
 }
 
 function ProductImage({ product }: { product: Product }) {
-  const lines = product.imageLabel.split('\n');
   return (
     <div className="image-panel" style={{
-      background: product.imageBg,
+      background: '#1a1a1a',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
       position: 'relative', overflow: 'hidden',
-      minHeight: 0,
-      flex: 1, // To fill the layout grid cell
+      minHeight: 0, flex: 1,
     }}>
-      {/* Subtle overlay */}
+      {product.images[0] ? (
+        <img
+          src={product.images[0]}
+          alt={product.name}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
+        />
+      ) : (
+        <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>Sin imagen</div>
+      )}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.18) 100%)',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)',
         pointerEvents: 'none',
       }}/>
-      {/* Striped placeholder */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: `repeating-linear-gradient(
-          45deg,
-          rgba(255,255,255,0.03) 0px,
-          rgba(255,255,255,0.03) 2px,
-          transparent 2px,
-          transparent 14px
-        )`,
-        pointerEvents: 'none',
-      }}/>
-      <div style={{
-        position: 'relative', zIndex: 1,
-        textAlign: 'center', padding: '0 24px',
-      }}>
-        <div style={{
-          width: 80, height: 80, borderRadius: 16,
-          background: 'rgba(255,255,255,0.12)',
-          border: '1.5px solid rgba(255,255,255,0.2)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 16px',
-          backdropFilter: 'blur(4px)',
-        }}>
-          <div style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace', fontSize: 10, textAlign: 'center', lineHeight: 1.4 }}>
-            product<br/>shot
-          </div>
-        </div>
-        {lines.map((l, i) => (
-          <div key={i} style={{
-            fontSize: i === 0 ? 17 : 13,
-            fontWeight: i === 0 ? 800 : 500,
-            color: i === 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.6)',
-            letterSpacing: i === 0 ? '-0.02em' : '0',
-            marginTop: i === 0 ? 0 : 4,
+      <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20, zIndex: 1 }}>
+        {product.sku && (
+          <div style={{
+            display: 'inline-block',
+            background: 'rgba(255,255,255,0.12)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            borderRadius: 6, padding: '3px 10px',
+            fontSize: 11, color: 'rgba(255,255,255,0.7)',
+            fontFamily: 'monospace', letterSpacing: '0.04em',
           }}>
-            {l}
+            {product.sku}
           </div>
-        ))}
-        <div style={{
-          marginTop: 12,
-          display: 'inline-block',
-          background: 'rgba(255,255,255,0.12)',
-          border: '1px solid rgba(255,255,255,0.18)',
-          borderRadius: 6,
-          padding: '3px 10px',
-          fontSize: 11, color: 'rgba(255,255,255,0.7)',
-          fontFamily: 'monospace', letterSpacing: '0.04em',
-        }}>
-          {product.sku}
-        </div>
+        )}
       </div>
-      {/* Category badge */}
       <div style={{
         position: 'absolute', top: 16, left: 16,
         background: 'rgba(255,255,255,0.15)',
         border: '1px solid rgba(255,255,255,0.2)',
-        borderRadius: 6,
-        padding: '4px 10px',
+        borderRadius: 6, padding: '4px 10px',
         fontSize: 11, fontWeight: 700,
         color: 'rgba(255,255,255,0.85)',
         letterSpacing: '0.06em', textTransform: 'uppercase',
@@ -122,9 +88,9 @@ function ProductImage({ product }: { product: Product }) {
   );
 }
 
-function BranchRow({ branch, isCurrentStore }: { branch: BranchStock; isCurrentStore: boolean }) {
-  const out = branch.qty === 0;
-  const low = branch.qty > 0 && branch.qty <= 5;
+function BranchRow({ branch, isCurrentStore }: { branch: Stock; isCurrentStore: boolean }) {
+  const out = branch.available === 0;
+  const low = branch.available > 0 && branch.available <= 5;
   const color = out ? 'var(--error)' : low ? 'var(--warning)' : 'var(--primary)';
   const bgColor = out ? 'var(--err-bg)' : low ? 'var(--warn-bg)' : 'var(--primary-bg)';
 
@@ -139,18 +105,17 @@ function BranchRow({ branch, isCurrentStore }: { branch: BranchStock; isCurrentS
       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
         <div style={{ color: isCurrentStore ? 'var(--primary)' : 'var(--text-muted)' }}><Store /></div>
         <div style={{ fontSize: 13, fontWeight: isCurrentStore ? 700 : 500, color: isCurrentStore ? 'var(--primary)' : 'var(--text)' }}>
-          {branch.name}
+          {branch.location_name}
           {isCurrentStore && <span style={{ fontSize: 10, marginLeft: 6, opacity: 0.7 }}>· esta sucursal</span>}
         </div>
       </div>
       <div style={{
-        background: bgColor,
-        color,
+        background: bgColor, color,
         fontSize: 12, fontWeight: 800,
         padding: '3px 10px', borderRadius: 20,
         letterSpacing: '0.01em',
       }}>
-        {out ? 'Agotado' : `${branch.qty} pza`}
+        {out ? 'Agotado' : `${branch.available} pza`}
       </div>
     </div>
   );
@@ -166,7 +131,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
   const [secs, setSecs] = useState(TIMER_SECONDS);
   const hasSale = product.priceSale !== null;
   const discount = hasSale && product.priceSale ? Math.round((1 - product.priceSale / product.price) * 100) : 0;
-  const totalStock = product.branches.reduce((a, b) => a + b.qty, 0);
+  const totalStock = product.stock.reduce((a, b) => a + b.available, 0);
 
   const fmt = (n: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
 
@@ -176,9 +141,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
   }, []);
 
   useEffect(() => {
-    if (secs <= 0) {
-      onBack();
-    }
+    if (secs <= 0) onBack();
   }, [secs, onBack]);
 
   return (
@@ -225,10 +188,10 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
           padding: '28px 28px 24px',
           gap: 20,
         }}>
-          {/* Name + style */}
+          {/* Name */}
           <div className="slide-up">
             <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>
-              {product.category} · {product.color} · Talla {product.size}
+              {product.category}{product.color ? ` · ${product.color}` : ''}{product.size ? ` · ${product.size}` : ''}
             </div>
             <h2 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.04em', lineHeight: 1.1, textWrap: 'balance' }}>
               {product.name}
@@ -267,19 +230,19 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
                   {fmt(product.price)} MXN
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 800 }}>
-                  Ahorras {fmt(product.price - product.priceSale)}
+                  Ahorras {fmt(product.price - (product.priceSale ?? 0))}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Metadata: SKU + Style */}
+          {/* Metadata: SKU + Marca */}
           <div className="slide-up slide-up-d2" style={{
             display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8,
           }}>
             {[
-              { label: 'SKU', value: product.sku },
-              { label: 'Estilo', value: product.style },
+              { label: 'SKU', value: product.sku ?? '—' },
+              { label: 'Marca', value: product.vendor },
             ].map(m => (
               <div key={m.label} style={{
                 background: 'var(--surface)', borderRadius: 10,
@@ -293,22 +256,22 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
           </div>
 
           {/* Sizes */}
-          {product.allSizes && product.allSizes.length > 0 && (
+          {product.all_sizes && product.all_sizes.length > 0 && (
             <div className="slide-up slide-up-d3">
               <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 10 }}>
                 Tallas en este estilo
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {product.allSizes.map(sz => {
+                {product.all_sizes.map(sz => {
                   const isCurrent = sz === product.size;
-                  const isAvailable = product.availableSizes?.includes(sz);
-                  
+                  const isAvailable = product.available_sizes?.includes(sz);
+
                   let bg = 'var(--surface)';
                   let color = 'var(--text)';
                   let border = '1.5px solid var(--border)';
                   let textDeco = 'none';
                   let opacity = 1;
-                  
+
                   if (isCurrent) {
                     bg = 'var(--primary)';
                     color = 'white';
@@ -319,18 +282,13 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
                     textDeco = 'line-through';
                     opacity = 0.5;
                   }
-                  
+
                   return (
                     <div key={sz} style={{
-                      background: bg,
-                      color: color,
-                      border: border,
-                      textDecoration: textDeco,
-                      opacity: opacity,
-                      borderRadius: 8,
-                      padding: '6px 12px',
-                      fontSize: 13,
-                      fontWeight: isCurrent ? 800 : 600,
+                      background: bg, color, border,
+                      textDecoration: textDeco, opacity,
+                      borderRadius: 8, padding: '6px 12px',
+                      fontSize: 13, fontWeight: isCurrent ? 800 : 600,
                       fontFamily: 'monospace',
                     }}>
                       {sz}
@@ -341,7 +299,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
             </div>
           )}
 
-          {/* Branches */}
+          {/* Stock por sucursal */}
           <div className="slide-up slide-up-d4">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
@@ -352,8 +310,12 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {product.branches.map((br, i) => (
-                <BranchRow key={br.name} branch={br} isCurrentStore={i === 0} />
+              {product.stock.map(br => (
+                <BranchRow
+                  key={br.location_id}
+                  branch={br}
+                  isCurrentStore={storeName.includes(br.location_name)}
+                />
               ))}
             </div>
           </div>
@@ -361,8 +323,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
           {/* Timer notice */}
           <div className="slide-up" style={{
             animationDelay: '0.30s',
-            marginTop: 'auto',
-            paddingTop: 8,
+            marginTop: 'auto', paddingTop: 8,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: 8, color: secs <= 10 ? 'var(--error)' : 'var(--text-light)',
             fontSize: 12, fontWeight: 600,

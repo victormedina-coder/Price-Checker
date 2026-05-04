@@ -2,7 +2,8 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { Tag, Barcode, X } from "./Icons";
-import { Product, PRODUCTS } from "../lib/mockData";
+import { Product } from "../lib/types";
+import { getProduct } from "../lib/api";
 
 interface ScanScreenProps {
   storeName: string;
@@ -15,19 +16,20 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { 
-    inputRef.current?.focus(); 
+  useEffect(() => {
+    inputRef.current?.focus();
   }, []);
 
-  const lookup = (raw: string) => {
+  const lookup = async (raw: string) => {
     const key = raw.trim();
-    const product = PRODUCTS[key];
-    if (product) { 
-      setError(''); 
-      onResult(product); 
-    } else { 
-      setError('No pudimos encontrar este producto. Por favor, verifica el código con un asociado'); 
-      setBusy(false); 
+    try {
+      const product = await getProduct(key);
+      setError('');
+      onResult(product);
+    } catch {
+      setError('No pudimos encontrar este producto. Por favor, verifica el código con un asociado');
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -35,17 +37,8 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
     e.preventDefault();
     if (!code.trim() || busy) return;
     setBusy(true);
-    setTimeout(() => lookup(code), 550);
+    lookup(code);
   };
-
-  const demo = (k: string) => {
-    setCode(k); 
-    setError(''); 
-    setBusy(true);
-    setTimeout(() => lookup(k), 600);
-  };
-
-  const demos = Object.entries(PRODUCTS).map(([k, v]) => ({ code: k, label: v.name, category: v.category }));
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -105,7 +98,7 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
             <div style={{ position: 'relative' }}>
               <input ref={inputRef} value={code}
                 onChange={e => { setCode(e.target.value); setError(''); }}
-                placeholder="p. ej. 7401234567890"
+                placeholder="p. ej. 7506552409252"
                 style={{
                   width: '100%', height: 54,
                   border: `2px solid ${error ? 'var(--error)' : 'var(--border)'}`,
@@ -147,28 +140,6 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
               {busy ? 'Buscando…' : 'Consultar precio'}
             </button>
           </form>
-        </div>
-
-        {/* Demo products */}
-        <div className="fade-in" style={{ width: '100%', maxWidth: 480 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-light)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12, textAlign: 'center' }}>
-            Productos de ejemplo
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
-            {demos.map(d => (
-              <button key={d.code} onClick={() => demo(d.code)} style={{
-                background: 'var(--surface)', border: `1.5px solid var(--border)`,
-                borderRadius: 11, padding: '10px 14px', textAlign: 'left',
-                cursor: 'pointer', transition: 'border-color 0.15s, background 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.background = 'var(--primary-bg)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--surface)'; }}
-              >
-                <div style={{ fontSize: 10, color: 'var(--primary)', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 2 }}>{d.category}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>{d.label}</div>
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </div>

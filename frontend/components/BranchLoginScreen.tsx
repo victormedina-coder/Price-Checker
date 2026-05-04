@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowLeft, Store } from "./Icons";
-import { Branch, BRANCHES } from "../lib/mockData";
+import { Location } from "../lib/types";
+import { getLocations, authLocation } from "../lib/api";
 
 function PinKeypad({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
@@ -43,24 +44,34 @@ function PinKeypad({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 interface BranchLoginScreenProps {
-  onLogin: (branch: Branch) => void;
+  onLogin: (location: Location) => void;
 }
 
 export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
-  const [selected, setSelected] = useState<Branch | null>(null);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Location | null>(null);
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handlePinChange = (val: string) => {
+  useEffect(() => {
+    getLocations()
+      .then(setLocations)
+      .catch(() => setError("No se pudieron cargar las sucursales."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handlePinChange = async (val: string) => {
     setPin(val);
     setError('');
     if (val.length === 4 && selected) {
-      if (val === selected.pin) {
+      try {
+        await authLocation(selected.id, val);
         setSuccess(true);
         setTimeout(() => onLogin(selected), 700);
-      } else {
+      } catch {
         setShake(true);
         setError('Clave incorrecta');
         setTimeout(() => { setShake(false); setPin(''); }, 600);
@@ -107,7 +118,7 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
               <Store />
             </div>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: 'white', letterSpacing: '-0.03em' }}>Ariat México</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: 'white', letterSpacing: '-0.03em' }}>Western Brothers</div>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>Verificador de Precios</div>
             </div>
           </div>
@@ -151,7 +162,12 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
                 Selecciona tu sucursal para continuar:
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {BRANCHES.map(br => (
+                {loading && (
+                  <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24, gridColumn: '1 / -1' }}>
+                    Cargando sucursales...
+                  </div>
+                )}
+                {!loading && locations.map(br => (
                   <button key={br.id} onClick={() => { setSelected(br); setPin(''); setError(''); }} style={{
                     background: selected?.id === br.id ? 'var(--primary-bg)' : 'var(--surface-alt)',
                     border: `2px solid ${selected?.id === br.id ? 'var(--primary)' : 'var(--border)'}`,
@@ -246,10 +262,6 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
               )}
 
               <PinKeypad value={pin} onChange={handlePinChange} />
-
-              <div style={{ textAlign: 'center', marginTop: 16, fontSize: 11, color: 'var(--text-light)' }}>
-                Demo: clave para {selected.name} es <strong style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{selected.pin}</strong>
-              </div>
             </div>
           )}
         </div>

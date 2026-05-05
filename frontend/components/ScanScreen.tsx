@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Tag, Barcode, X } from "./Icons";
+import Image from "next/image";
+import { Barcode, X } from "./Icons";
 import { Product } from "../lib/types";
 import { getProduct } from "../lib/api";
+import logoNegro from "../assets/logos/WesternBrothers-Logotipo-Horizontal-Negro.png";
 
 interface ScanScreenProps {
   storeName: string;
@@ -51,16 +53,15 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
         display: 'flex', alignItems: 'center', gap: 14,
         flexShrink: 0,
       }}>
-        <div style={{
-          width: 38, height: 38, background: 'var(--primary)', borderRadius: 9,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white',
-          flexShrink: 0,
-        }}>
-          <Tag />
-        </div>
-        <div>
-          <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--text)', letterSpacing: '-0.02em' }}>{storeName}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Verificador de Precios</div>
+        <Image
+          src={logoNegro}
+          alt="Western Brothers"
+          height={24}
+          width={126}
+        />
+        <div style={{ height: 20, width: 1, background: 'var(--border)', flexShrink: 0 }} />
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
+          {storeName.includes('—') ? storeName.split('—')[1].trim() : 'Verificador de Precios'}
         </div>
       </div>
 
@@ -99,6 +100,7 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
               <input ref={inputRef} value={code}
                 onChange={e => { setCode(e.target.value); setError(''); }}
                 placeholder="p. ej. 7506552409252"
+                inputMode="none"
                 style={{
                   width: '100%', height: 54,
                   border: `2px solid ${error ? 'var(--error)' : 'var(--border)'}`,

@@ -1,18 +1,30 @@
 :root {
-  --primary:      #108474;
-  --primary-dark:  #0b6359;
-  --primary-light: #13a08c;
-  --primary-bg:    rgba(16,132,116,0.08);
-  --text:         #1a1a1a;
-  --text-muted:    #6b7280;
-  --text-light:    #9ca3af;
-  --border:       #d4dade;
-  --surface:      #ffffff;
-  --surface-alt:   #f5f8f7;
-  --error:        #dc2626;
-  --warning:      #b45309;
+  /* Western Brothers brand palette */
+  --primary:       #683E49;   /* Galope  */
+  --primary-dark:  #4e2e37;
+  --primary-light: #89576380;
+  --primary-bg:    rgba(104,62,73,0.08);
+
+  --accent-cenit:  #F6FEA2;   /* Cenit   */
+  --accent-oasis:  #C78645;   /* Oasis   */
+  --accent-fugaz:  #DEED82;   /* Fugaz   */
+  --accent-huella: #8E7C6C;   /* Huella  */
+  --accent-onda:   #996B6D;   /* Onda    */
+
+  --text:          #1a1111;
+  --text-muted:    #6b5f5f;
+  --text-light:    #9e8f8f;
+  --border:        #e0d5d0;
+  --surface:       #ffffff;
+  --surface-alt:   #faf6f4;
+  --error:         #dc2626;
+  --warning:       #b45309;
   --warn-bg:       #fef3c7;
   --err-bg:        #fee2e2;
+
+  /* Typography */
+  --font-heading: var(--font-playfair), 'Georgia', serif;
+  --font-body:    var(--font-montserrat), 'Helvetica Neue', sans-serif;
 }
 
 *, *::before, *::after {
@@ -27,8 +39,8 @@ html, body {
 }
 
 body {
-  font-family: var(--font-nunito-sans), 'Proxima Nova', ui-sans-serif, sans-serif;
-  background: #f0f2f1;
+  font-family: var(--font-body);
+  background: #f0ebe8;
   display: flex;
   align-items: stretch;
   justify-content: center;

@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Store } from "./Icons";
+import Image from "next/image";
+import { ArrowLeft } from "./Icons";
 import { Location } from "../lib/types";
 import { getLocations, authLocation } from "../lib/api";
+import logoBlanco from "../assets/logos/WesternBrothers-Logotipo-Horizontal-Blanco.png";
 
 function PinKeypad({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
@@ -84,7 +86,7 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(10,20,18,0.82)',
+      background: 'rgba(20,8,12,0.85)',
       backdropFilter: 'blur(12px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: 24,
@@ -108,18 +110,16 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
             backgroundImage: 'radial-gradient(circle at 90% 10%, rgba(255,255,255,0.08), transparent 60%)',
             pointerEvents: 'none',
           }}/>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 10,
-              background: 'rgba(255,255,255,0.15)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white',
-            }}>
-              <Store />
-            </div>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: 'white', letterSpacing: '-0.03em' }}>Western Brothers</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>Verificador de Precios</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <Image
+              src={logoBlanco}
+              alt="Western Brothers"
+              height={26}
+              width={136}
+              style={{ opacity: 0.95 }}
+            />
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: 500, letterSpacing: '0.03em' }}>
+              Verificador de Precios
             </div>
           </div>
           {/* Steps */}

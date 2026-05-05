@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { ArrowLeft, Store } from "./Icons";
 import { Product, Stock } from "../lib/types";
+import logoNegro from "../assets/logos/WesternBrothers-Logotipo-Horizontal-Negro.png";
 
 const TIMER_SECONDS = 15;
 
@@ -100,7 +102,7 @@ function BranchRow({ branch, isCurrentStore }: { branch: Stock; isCurrentStore: 
       padding: '10px 14px',
       background: isCurrentStore ? 'var(--primary-bg)' : 'var(--surface)',
       borderRadius: 10,
-      border: `1.5px solid ${isCurrentStore ? 'rgba(16,132,116,0.4)' : 'var(--border)'}`,
+      border: `1.5px solid ${isCurrentStore ? 'rgba(104,62,73,0.4)' : 'var(--border)'}`,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
         <div style={{ color: isCurrentStore ? 'var(--primary)' : 'var(--text-muted)' }}><Store /></div>
@@ -164,9 +166,16 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
         >
           <ArrowLeft /> Regresar
         </button>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text)', letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{storeName}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Verificador de Precios</div>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Image
+            src={logoNegro}
+            alt="Western Brothers"
+            height={20}
+            width={104}
+          />
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {storeName.includes('—') ? storeName.split('—')[1].trim() : 'Verificador de Precios'}
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Nueva consulta en</div>
@@ -203,7 +212,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
             background: 'var(--surface)', borderRadius: 14,
             padding: '20px 22px',
             boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-            border: hasSale ? `2px solid rgba(16,132,116,0.22)` : `1.5px solid var(--border)`,
+            border: hasSale ? `2px solid rgba(104,62,73,0.22)` : `1.5px solid var(--border)`,
           }}>
             {hasSale && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>

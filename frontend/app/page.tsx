@@ -56,7 +56,7 @@ export default function Home() {
     idleRef.current = setTimeout(() => setScreensaver(true), IDLE_TIMEOUT * 1000);
   };
 
-  const storeName = branch ? `Ariat — ${branch.name}` : 'Ariat';
+  const storeName = branch ? `Western Brothers — ${branch.name}` : 'Western Brothers';
 
   if (isOffline) {
     return (

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Barcode, X } from "./Icons";
 import { Product } from "../lib/types";
 import { getProduct } from "../lib/api";
-import logoNegro from "../assets/logos/WesternBrothers-Logotipo-Horizontal-Negro.png";
+import logoNegro from "../assets/logos/Logo_Ariat_Horizontal_ngo.png";
 
 interface ScanScreenProps {
   storeName: string;
@@ -53,12 +53,9 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
         display: 'flex', alignItems: 'center', gap: 14,
         flexShrink: 0,
       }}>
-        <Image
-          src={logoNegro}
-          alt="Western Brothers"
-          height={24}
-          width={126}
-        />
+        <div style={{ position: 'relative', height: 28, width: 154, flexShrink: 0 }}>
+          <Image src={logoNegro} alt="Ariat" fill sizes="154px" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+        </div>
         <div style={{ height: 20, width: 1, background: 'var(--border)', flexShrink: 0 }} />
         <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
           {storeName.includes('—') ? storeName.split('—')[1].trim() : 'Verificador de Precios'}

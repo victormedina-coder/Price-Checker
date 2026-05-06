@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { ArrowLeft, Store } from "./Icons";
 import { Product, Stock } from "../lib/types";
-import logoNegro from "../assets/logos/WesternBrothers-Logotipo-Horizontal-Negro.png";
+import logoNegro from "../assets/logos/Logo_Ariat_Horizontal_ngo.png";
 
 const TIMER_SECONDS = 15;
 
@@ -102,7 +102,7 @@ function BranchRow({ branch, isCurrentStore }: { branch: Stock; isCurrentStore: 
       padding: '10px 14px',
       background: isCurrentStore ? 'var(--primary-bg)' : 'var(--surface)',
       borderRadius: 10,
-      border: `1.5px solid ${isCurrentStore ? 'rgba(104,62,73,0.4)' : 'var(--border)'}`,
+      border: `1.5px solid ${isCurrentStore ? 'rgba(198,136,61,0.4)' : 'var(--border)'}`,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
         <div style={{ color: isCurrentStore ? 'var(--primary)' : 'var(--text-muted)' }}><Store /></div>
@@ -161,18 +161,15 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
           fontSize: 13, fontWeight: 700, color: 'var(--text)',
           cursor: 'pointer', transition: 'background 0.15s',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = '#e6ebed'}
+        onMouseEnter={e => e.currentTarget.style.background = '#EAE2D4'}
         onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-alt)'}
         >
           <ArrowLeft /> Regresar
         </button>
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <Image
-            src={logoNegro}
-            alt="Western Brothers"
-            height={20}
-            width={104}
-          />
+          <div style={{ position: 'relative', height: 26, width: 143, flexShrink: 0 }}>
+            <Image src={logoNegro} alt="Ariat" fill sizes="143px" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+          </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {storeName.includes('—') ? storeName.split('—')[1].trim() : 'Verificador de Precios'}
           </div>
@@ -212,7 +209,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
             background: 'var(--surface)', borderRadius: 14,
             padding: '20px 22px',
             boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-            border: hasSale ? `2px solid rgba(104,62,73,0.22)` : `1.5px solid var(--border)`,
+            border: hasSale ? `2px solid rgba(198,136,61,0.25)` : `1.5px solid var(--border)`,
           }}>
             {hasSale && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>

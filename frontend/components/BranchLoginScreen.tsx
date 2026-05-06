@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ArrowLeft } from "./Icons";
 import { Location } from "../lib/types";
 import { getLocations, authLocation } from "../lib/api";
-import logoBlanco from "../assets/logos/WesternBrothers-Logotipo-Horizontal-Blanco.png";
+import logoBlanco from "../assets/logos/Logo_Ariat_Horizontal_bco.png";
 
 function PinKeypad({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
@@ -111,13 +111,9 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
             pointerEvents: 'none',
           }}/>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <Image
-              src={logoBlanco}
-              alt="Western Brothers"
-              height={26}
-              width={136}
-              style={{ opacity: 0.95 }}
-            />
+            <div style={{ position: 'relative', height: 30, width: 165, flexShrink: 0, opacity: 0.95 }}>
+              <Image src={logoBlanco} alt="Ariat" fill sizes="165px" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+            </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: 500, letterSpacing: '0.03em' }}>
               Verificador de Precios
             </div>

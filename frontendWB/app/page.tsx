@@ -5,6 +5,7 @@ import ScreenSaver from "../components/ScreenSaver";
 import BranchLoginScreen from "../components/BranchLoginScreen";
 import ScanScreen from "../components/ScanScreen";
 import ResultScreen from "../components/ResultScreen";
+import MaintenanceScreen from "../components/MaintenanceScreen";
 import { Location, Product } from "../lib/types";
 
 const IDLE_TIMEOUT = 15; // seconds before screensaver
@@ -57,6 +58,8 @@ export default function Home() {
   };
 
   const storeName = branch ? `Western Brothers — ${branch.name}` : 'Western Brothers';
+
+  if (process.env.NEXT_PUBLIC_MAINTENANCE === 'true') return <MaintenanceScreen />;
 
   if (isOffline) {
     return (

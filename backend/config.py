@@ -7,6 +7,7 @@ SHOPIFY_CLIENT_ID     = os.getenv("SHOPIFY_CLIENT_ID")
 SHOPIFY_CLIENT_SECRET = os.getenv("SHOPIFY_CLIENT_SECRET")
 SHOPIFY_STORE_DOMAIN  = os.getenv("SHOPIFY_STORE_DOMAIN")
 SHOPIFY_API_VERSION   = os.getenv("SHOPIFY_API_VERSION", "2024-04")
+DATA_SOURCE           = os.getenv("DATA_SOURCE", "shopify")  # shopify | odoo | netsuite
 
 GRAPHQL_URL = f"https://{SHOPIFY_STORE_DOMAIN}/admin/api/{SHOPIFY_API_VERSION}/graphql.json"
 

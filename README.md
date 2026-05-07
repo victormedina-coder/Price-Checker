@@ -154,6 +154,9 @@ NEXT_PUBLIC_API_URL=http://192.168.x.x:8000
 # Segundos de inactividad antes de reiniciar la pantalla de resultados
 NEXT_PUBLIC_RESULT_TIMEOUT=15
 
+# Milisegundos que dura el modal de "producto no encontrado" antes de cerrarse
+NEXT_PUBLIC_ERROR_TIMEOUT=2000
+
 # Modo mantenimiento — bloquea toda la app (true | false)
 NEXT_PUBLIC_MAINTENANCE=false
 ```

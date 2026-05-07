@@ -12,16 +12,25 @@ interface ScanScreenProps {
   onResult: (product: Product) => void;
 }
 
+const ERROR_TIMEOUT_MS = Number(process.env.NEXT_PUBLIC_ERROR_TIMEOUT) || 2000;
+
 export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [serviceDown, setServiceDown] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  const dismissNotFound = () => {
+    setNotFound(false);
+    setCode('');
+    inputRef.current?.focus();
+  };
 
   const validateCode = (raw: string): string | null => {
     const v = raw.trim();
@@ -43,7 +52,8 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
         setServiceDown(true);
         setError('');
       } else if (e instanceof ProductNotFoundError) {
-        setError('No pudimos encontrar este producto. Por favor, verifica el código con un asociado.');
+        setNotFound(true);
+        setTimeout(dismissNotFound, ERROR_TIMEOUT_MS);
       } else {
         setError('Ocurrió un error inesperado. Intenta de nuevo.');
       }
@@ -135,6 +145,33 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
             Escanea el código de barras del artículo o ingrésalo manualmente
           </p>
         </div>
+
+        {/* Modal — producto no encontrado */}
+        {notFound && (
+          <div onClick={dismissNotFound} style={{
+            position: 'fixed', inset: 0, zIndex: 50,
+            background: 'rgba(0,0,0,0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '0 24px',
+          }}>
+            <div className="slide-up" style={{
+              background: 'var(--surface)',
+              borderRadius: 20,
+              padding: '32px 28px',
+              maxWidth: 400, width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+            }}>
+              <div style={{ fontSize: 44, marginBottom: 16, lineHeight: 1 }}>🔍</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', lineHeight: 1.45 }}>
+                No pudimos encontrar este producto.
+              </div>
+              <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.55 }}>
+                Por favor, verifica el código con un asociado.
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Servicio no disponible */}
         {serviceDown && (

@@ -1,8 +1,10 @@
-from pydantic.deprecated import json
+import logging
 import time
 import httpx
 from fastapi import HTTPException
 from config import SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET, SHOPIFY_STORE_DOMAIN, GRAPHQL_URL
+
+logger = logging.getLogger("price_checker.shopify")
 
 _token_cache: dict = {"access_token": None, "expires_at": 0}
 
@@ -34,6 +36,7 @@ async def get_shopify_token() -> str:
         )
 
     if response.status_code != 200:
+        logger.error("Shopify rechazó token: status=%s body=%s", response.status_code, response.text[:200])
         raise HTTPException(
             status_code=502,
             detail=f"Shopify rechazó la solicitud de token: {response.text}",
@@ -42,6 +45,7 @@ async def get_shopify_token() -> str:
     data = response.json()
     _token_cache["access_token"] = data["access_token"]
     _token_cache["expires_at"] = now + data.get("expires_in", 86400)
+    logger.info("Shopify token renovado (expira en %ds)", data.get("expires_in", 86400))
 
     return _token_cache["access_token"]
 
@@ -60,6 +64,7 @@ async def shopify_query(query: str) -> dict:
             timeout=10,
         )
     if response.status_code != 200:
+        logger.error("Shopify GraphQL error: status=%s", response.status_code)
         raise HTTPException(status_code=502, detail="Error al consultar Shopify.")
     return response.json()
 
@@ -77,5 +82,6 @@ async def shopify_query_with_vars(query: str, variables: dict) -> dict:
             timeout=10,
         )
     if response.status_code != 200:
-        raise HTTPException(status_code = 502, detail = "Error al consultar Shopify")
+        logger.error("Shopify GraphQL (vars) error: status=%s vars=%s", response.status_code, variables)
+        raise HTTPException(status_code=502, detail="Error al consultar Shopify.")
     return response.json()

@@ -1,9 +1,12 @@
 # productos — próximo endpoint
+import logging
 import time
 from shopify.querys import PRODUCT_BY_BARCODE_QUERY
 from shopify.client import shopify_query_with_vars
 from fastapi import HTTPException
 from fastapi import APIRouter
+
+logger = logging.getLogger("price_checker.products")
 
 # ── Caché en memoria ─────────────────────────────────────────────────────────
 CACHE_TTL_SECONDS = 15 * 60  # 15 minutos
@@ -27,7 +30,7 @@ router = APIRouter(prefix="/products", tags=["products"])
 
 def _parse_product(data: dict) -> dict:
     edges = data["data"]["productVariants"]["edges"]
-    if not edges: 
+    if not edges:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     
     node = edges[0]["node"]
@@ -102,14 +105,28 @@ def _parse_product(data: dict) -> dict:
 
 @router.get("/{barcode}")
 async def get_product(barcode: str):
+    start = time.time()
+
     cached = _cache_get(barcode)
     if cached:
+        ms = round((time.time() - start) * 1000)
+        logger.info("CACHE HIT  barcode=%s (%dms)", barcode, ms)
         return cached
 
-    data = await shopify_query_with_vars(
-        PRODUCT_BY_BARCODE_QUERY,
-        {"barcode": f"barcode:{barcode}"},
-    )
-    result = _parse_product(data)
-    _cache_set(barcode, result)
-    return result
+    try:
+        data = await shopify_query_with_vars(
+            PRODUCT_BY_BARCODE_QUERY,
+            {"barcode": f"barcode:{barcode}"},
+        )
+        result = _parse_product(data)
+        _cache_set(barcode, result)
+        ms = round((time.time() - start) * 1000)
+        logger.info("SHOPIFY    barcode=%s name=%r (%dms)", barcode, result.get("name"), ms)
+        return result
+    except HTTPException as e:
+        ms = round((time.time() - start) * 1000)
+        if e.status_code == 404:
+            logger.warning("NOT FOUND  barcode=%s (%dms)", barcode, ms)
+        else:
+            logger.error("ERROR      barcode=%s status=%s detail=%s (%dms)", barcode, e.status_code, e.detail, ms)
+        raise

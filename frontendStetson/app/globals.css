@@ -131,3 +131,15 @@ button {
   60%      { transform: translateX(-4px); }
   80%      { transform: translateX(4px); }
 }
+
+@keyframes scanLine {
+  0%   { top: 10px;  opacity: 1; }
+  48%  { top: calc(100% - 12px); opacity: 0.8; }
+  52%  { top: calc(100% - 12px); opacity: 0.8; }
+  100% { top: 10px;  opacity: 1; }
+}
+
+@keyframes scanGlow {
+  0%,100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}

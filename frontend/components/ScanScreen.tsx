@@ -85,15 +85,49 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
       <div className="scan-body" style={{ flex: 1 }}>
         {/* Icon + heading */}
         <div className="fade-in" style={{ textAlign: 'center' }}>
-          <div style={{
-            width: 88, height: 88, borderRadius: '50%',
-            background: 'var(--primary-bg)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 18px',
-            color: 'var(--primary)',
-          }}>
-            <Barcode />
+
+          {/* Scanner target */}
+          <div style={{ position: 'relative', width: 136, height: 136, margin: '0 auto 20px' }}>
+
+            {/* Fondo */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'var(--primary-bg)',
+              borderRadius: 10,
+            }}/>
+
+            {/* Ícono de barras */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--primary)', opacity: 0.5,
+            }}>
+              <Barcode />
+            </div>
+
+            {/* Línea de escaneo */}
+            <div style={{
+              position: 'absolute', left: 10, right: 10, height: 2,
+              background: 'linear-gradient(90deg, transparent 0%, var(--primary) 30%, var(--primary) 70%, transparent 100%)',
+              boxShadow: '0 0 10px 2px var(--primary)',
+              borderRadius: 1,
+              animation: 'scanLine 2s ease-in-out infinite',
+            }}/>
+
+            {/* Esquinas — top-left */}
+            <div style={{ position: 'absolute', top: 0, left: 0, width: 18, height: 18,
+              borderTop: '3px solid var(--primary)', borderLeft: '3px solid var(--primary)', borderRadius: '4px 0 0 0' }}/>
+            {/* Esquinas — top-right */}
+            <div style={{ position: 'absolute', top: 0, right: 0, width: 18, height: 18,
+              borderTop: '3px solid var(--primary)', borderRight: '3px solid var(--primary)', borderRadius: '0 4px 0 0' }}/>
+            {/* Esquinas — bottom-left */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, width: 18, height: 18,
+              borderBottom: '3px solid var(--primary)', borderLeft: '3px solid var(--primary)', borderRadius: '0 0 0 4px' }}/>
+            {/* Esquinas — bottom-right */}
+            <div style={{ position: 'absolute', bottom: 0, right: 0, width: 18, height: 18,
+              borderBottom: '3px solid var(--primary)', borderRight: '3px solid var(--primary)', borderRadius: '0 0 4px 0' }}/>
           </div>
+
           <h1 style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.04em', marginBottom: 8 }}>
             Consulta el precio
           </h1>

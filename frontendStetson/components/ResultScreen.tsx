@@ -6,7 +6,7 @@ import { ArrowLeft, Store } from "./Icons";
 import { Product, Stock } from "../lib/types";
 import logoNegro from "../assets/logos/Logo_Stetson_ngo.png";
 
-const TIMER_SECONDS = 15;
+const TIMER_SECONDS = Number(process.env.NEXT_PUBLIC_RESULT_TIMEOUT) || 15;
 
 function TimerRing({ seconds, total }: { seconds: number; total: number }) {
   const r = 18, circ = 2 * Math.PI * r;

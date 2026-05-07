@@ -23,6 +23,14 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
     inputRef.current?.focus();
   }, []);
 
+  const validateCode = (raw: string): string | null => {
+    const v = raw.trim();
+    if (v.length < 3)  return 'El código es demasiado corto. Verifica el artículo.';
+    if (v.length > 30) return 'El código es demasiado largo. Verifica el artículo.';
+    if (!/^[a-zA-Z0-9\-]+$/.test(v)) return 'El código contiene caracteres no válidos. Intenta escanearlo de nuevo.';
+    return null;
+  };
+
   const lookup = async (raw: string) => {
     const key = raw.trim();
     setServiceDown(false);
@@ -47,6 +55,8 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!code.trim() || busy) return;
+    const validationError = validateCode(code);
+    if (validationError) { setError(validationError); return; }
     setBusy(true);
     lookup(code);
   };

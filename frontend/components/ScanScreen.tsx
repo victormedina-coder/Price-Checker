@@ -54,7 +54,7 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
         flexShrink: 0,
       }}>
         <div style={{ position: 'relative', height: 28, width: 154, flexShrink: 0 }}>
-          <Image src={logoNegro} alt="Ariat" fill sizes="154px" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+          <Image src={logoNegro} alt="Ariat" fill sizes="154px" priority style={{ objectFit: 'cover', objectPosition: 'center' }} />
         </div>
         <div style={{ height: 20, width: 1, background: 'var(--border)', flexShrink: 0 }} />
         <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>

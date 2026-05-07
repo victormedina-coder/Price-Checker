@@ -94,13 +94,9 @@ export default function ScreenSaver({ onDismiss }: ScreenSaverProps) {
         animation: 'ssFloat 6s ease-in-out infinite',
       }}>
         {/* Logo */}
-        <Image
-          src={logoBlanco}
-          alt="Western Brothers"
-          height={30}
-          width={156}
-          style={{ opacity: 0.92, marginBottom: 4 }}
-        />
+        <div style={{ position: 'relative', height: 36, width: 221, flexShrink: 0, opacity: 0.92, marginBottom: 4 }}>
+          <Image src={logoBlanco} alt="Stetson" fill sizes="221px" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+        </div>
 
         {/* Clock */}
         <div style={{

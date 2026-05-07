@@ -167,12 +167,9 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
           <ArrowLeft /> Regresar
         </button>
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <Image
-            src={logoNegro}
-            alt="Western Brothers"
-            height={20}
-            width={104}
-          />
+          <div style={{ position: 'relative', height: 26, width: 160, flexShrink: 0 }}>
+            <Image src={logoNegro} alt="Stetson" fill sizes="160px" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+          </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {storeName.includes('—') ? storeName.split('—')[1].trim() : 'Verificador de Precios'}
           </div>

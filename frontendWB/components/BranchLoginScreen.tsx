@@ -111,13 +111,9 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
             pointerEvents: 'none',
           }}/>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <Image
-              src={logoBlanco}
-              alt="Western Brothers"
-              height={26}
-              width={136}
-              style={{ opacity: 0.95 }}
-            />
+            <div style={{ position: 'relative', height: 26, width: 408, flexShrink: 0, opacity: 0.95 }}>
+              <Image src={logoBlanco} alt="Western Brothers" fill sizes="408px" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+            </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: 500, letterSpacing: '0.03em' }}>
               Verificador de Precios
             </div>

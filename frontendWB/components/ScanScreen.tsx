@@ -53,12 +53,9 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
         display: 'flex', alignItems: 'center', gap: 14,
         flexShrink: 0,
       }}>
-        <Image
-          src={logoNegro}
-          alt="Western Brothers"
-          height={24}
-          width={126}
-        />
+        <div style={{ position: 'relative', height: 24, width: 376, flexShrink: 0 }}>
+          <Image src={logoNegro} alt="Western Brothers" fill sizes="376px" priority style={{ objectFit: 'cover', objectPosition: 'center' }} />
+        </div>
         <div style={{ height: 20, width: 1, background: 'var(--border)', flexShrink: 0 }} />
         <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
           {storeName.includes('—') ? storeName.split('—')[1].trim() : 'Verificador de Precios'}

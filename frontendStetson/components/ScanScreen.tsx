@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { Barcode, X } from "./Icons";
 import { Product } from "../lib/types";
-import { getProduct } from "../lib/api";
+import { getProduct, ProductNotFoundError, ServiceUnavailableError } from "../lib/api";
 import logoNegro from "../assets/logos/Logo_Stetson_ngo.png";
 
 interface ScanScreenProps {
@@ -15,6 +15,7 @@ interface ScanScreenProps {
 export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
+  const [serviceDown, setServiceDown] = useState(false);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -24,12 +25,20 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
 
   const lookup = async (raw: string) => {
     const key = raw.trim();
+    setServiceDown(false);
     try {
       const product = await getProduct(key);
       setError('');
       onResult(product);
-    } catch {
-      setError('No pudimos encontrar este producto. Por favor, verifica el código con un asociado');
+    } catch (e) {
+      if (e instanceof ServiceUnavailableError) {
+        setServiceDown(true);
+        setError('');
+      } else if (e instanceof ProductNotFoundError) {
+        setError('No pudimos encontrar este producto. Por favor, verifica el código con un asociado.');
+      } else {
+        setError('Ocurrió un error inesperado. Intenta de nuevo.');
+      }
     } finally {
       setBusy(false);
     }
@@ -83,6 +92,27 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
           </p>
         </div>
 
+        {/* Servicio no disponible */}
+        {serviceDown && (
+          <div className="fade-in" style={{
+            width: '100%', maxWidth: 480,
+            background: 'var(--err-bg)',
+            border: '1.5px solid var(--error)',
+            borderRadius: 14, padding: '18px 22px',
+            display: 'flex', alignItems: 'flex-start', gap: 14,
+          }}>
+            <span style={{ fontSize: 24, lineHeight: 1, flexShrink: 0 }}>⚠️</span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--error)', marginBottom: 4 }}>
+                Servicio no disponible temporalmente
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--error)', opacity: 0.85, lineHeight: 1.5 }}>
+                No fue posible conectar con el catálogo. Verifica la conexión a internet o consulta con un asociado.
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Input card */}
         <div className="fade-in" style={{
           background: 'var(--surface)', borderRadius: 18, padding: '28px 28px 24px',
@@ -95,7 +125,7 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
             </label>
             <div style={{ position: 'relative' }}>
               <input ref={inputRef} value={code}
-                onChange={e => { setCode(e.target.value); setError(''); }}
+                onChange={e => { setCode(e.target.value); setError(''); setServiceDown(false); }}
                 placeholder="p. ej. 7506552409252"
                 inputMode="none"
                 style={{
@@ -111,7 +141,7 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
                 onBlur={e => { if (!error) e.target.style.borderColor = 'var(--border)'; }}
               />
               {code && (
-                <button type="button" onClick={() => { setCode(''); setError(''); inputRef.current?.focus(); }} style={{
+                <button type="button" onClick={() => { setCode(''); setError(''); setServiceDown(false); inputRef.current?.focus(); }} style={{
                   position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                   background: 'var(--border)', border: 'none', borderRadius: '50%', width: 24, height: 24,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',

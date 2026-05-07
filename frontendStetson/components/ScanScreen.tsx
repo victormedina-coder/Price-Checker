@@ -32,6 +32,12 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
     inputRef.current?.focus();
   };
 
+  const dismissServiceDown = () => {
+    setServiceDown(false);
+    setCode('');
+    inputRef.current?.focus();
+  };
+
   const validateCode = (raw: string): string | null => {
     const v = raw.trim();
     if (v.length < 3)  return 'El código es demasiado corto. Verifica el artículo.';
@@ -50,7 +56,7 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
     } catch (e) {
       if (e instanceof ServiceUnavailableError) {
         setServiceDown(true);
-        setError('');
+        setTimeout(dismissServiceDown, ERROR_TIMEOUT_MS);
       } else if (e instanceof ProductNotFoundError) {
         setNotFound(true);
         setTimeout(dismissNotFound, ERROR_TIMEOUT_MS);
@@ -173,21 +179,27 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
           </div>
         )}
 
-        {/* Servicio no disponible */}
+        {/* Modal — servicio no disponible */}
         {serviceDown && (
-          <div className="fade-in" style={{
-            width: '100%', maxWidth: 480,
-            background: 'var(--err-bg)',
-            border: '1.5px solid var(--error)',
-            borderRadius: 14, padding: '18px 22px',
-            display: 'flex', alignItems: 'flex-start', gap: 14,
+          <div onClick={dismissServiceDown} style={{
+            position: 'fixed', inset: 0, zIndex: 50,
+            background: 'rgba(0,0,0,0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '0 24px',
           }}>
-            <span style={{ fontSize: 24, lineHeight: 1, flexShrink: 0 }}>⚠️</span>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--error)', marginBottom: 4 }}>
-                Servicio no disponible temporalmente
+            <div className="slide-up" style={{
+              background: 'var(--surface)',
+              borderRadius: 20,
+              padding: '32px 28px',
+              maxWidth: 400, width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+            }}>
+              <div style={{ fontSize: 44, marginBottom: 16, lineHeight: 1 }}>⚠️</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', lineHeight: 1.45 }}>
+                Servicio no disponible temporalmente.
               </div>
-              <div style={{ fontSize: 13, color: 'var(--error)', opacity: 0.85, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.55 }}>
                 No fue posible conectar con el catálogo. Verifica la conexión a internet o consulta con un asociado.
               </div>
             </div>

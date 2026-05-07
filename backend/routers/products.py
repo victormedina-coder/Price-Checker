@@ -1,8 +1,27 @@
 # productos — próximo endpoint
+import time
 from shopify.querys import PRODUCT_BY_BARCODE_QUERY
 from shopify.client import shopify_query_with_vars
 from fastapi import HTTPException
 from fastapi import APIRouter
+
+# ── Caché en memoria ─────────────────────────────────────────────────────────
+CACHE_TTL_SECONDS = 15 * 60  # 15 minutos
+_product_cache: dict[str, tuple[dict, float]] = {}  # barcode → (data, expires_at)
+
+
+def _cache_get(barcode: str) -> dict | None:
+    entry = _product_cache.get(barcode)
+    if entry and time.time() < entry[1]:
+        return entry[0]
+    if entry:
+        del _product_cache[barcode]
+    return None
+
+
+def _cache_set(barcode: str, data: dict) -> None:
+    _product_cache[barcode] = (data, time.time() + CACHE_TTL_SECONDS)
+# ─────────────────────────────────────────────────────────────────────────────
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -83,8 +102,14 @@ def _parse_product(data: dict) -> dict:
 
 @router.get("/{barcode}")
 async def get_product(barcode: str):
+    cached = _cache_get(barcode)
+    if cached:
+        return cached
+
     data = await shopify_query_with_vars(
         PRODUCT_BY_BARCODE_QUERY,
         {"barcode": f"barcode:{barcode}"},
     )
-    return _parse_product(data)
+    result = _parse_product(data)
+    _cache_set(barcode, result)
+    return result

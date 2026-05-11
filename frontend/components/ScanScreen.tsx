@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useImperativeHandle, forwardRef } from "react";
 import Image from "next/image";
 import { Barcode, X } from "./Icons";
 import { Product } from "../lib/types";
@@ -12,15 +12,23 @@ interface ScanScreenProps {
   onResult: (product: Product) => void;
 }
 
+export interface ScanScreenHandle {
+  focusInput: () => void;
+}
+
 const ERROR_TIMEOUT_MS = Number(process.env.NEXT_PUBLIC_ERROR_TIMEOUT) || 2000;
 
-export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
+const ScanScreen = forwardRef<ScanScreenHandle, ScanScreenProps>(function ScanScreen({ storeName, onResult }, ref) {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [serviceDown, setServiceDown] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    focusInput: () => inputRef.current?.focus(),
+  }));
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -78,7 +86,7 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
   };
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div onClick={() => inputRef.current?.focus()} style={{ width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* Header */}
       <div style={{
         background: 'var(--surface)',
@@ -266,4 +274,6 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
       </div>
     </div>
   );
-}
+});
+
+export default ScanScreen;

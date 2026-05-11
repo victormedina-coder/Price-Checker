@@ -17,6 +17,13 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "Verificador de Precios — Western Brothers",
   description: "Verificador de precios para tiendas Western Brothers",
+  manifest: "/manifest.json",
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "theme-color": "#683E49",
+  },
 };
 
 export default function RootLayout({

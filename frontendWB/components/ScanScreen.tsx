@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useImperativeHandle, forwardRef } from "react";
 import Image from "next/image";
 import { Barcode, X } from "./Icons";
 import { Product } from "../lib/types";
@@ -12,15 +12,23 @@ interface ScanScreenProps {
   onResult: (product: Product) => void;
 }
 
+export interface ScanScreenHandle {
+  focusInput: () => void;
+}
+
 const ERROR_TIMEOUT_MS = Number(process.env.NEXT_PUBLIC_ERROR_TIMEOUT) || 2000;
 
-export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
+const ScanScreen = forwardRef<ScanScreenHandle, ScanScreenProps>(function ScanScreen({ storeName, onResult }, ref) {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [serviceDown, setServiceDown] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    focusInput: () => inputRef.current?.focus(),
+  }));
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -40,7 +48,7 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
 
   const validateCode = (raw: string): string | null => {
     const v = raw.trim();
-    if (v.length < 3)  return 'El código es demasiado corto. Verifica el artículo.';
+    if (v.length < 3) return 'El código es demasiado corto. Verifica el artículo.';
     if (v.length > 30) return 'El código es demasiado largo. Verifica el artículo.';
     if (!/^[a-zA-Z0-9\-]+$/.test(v)) return 'El código contiene caracteres no válidos. Intenta escanearlo de nuevo.';
     return null;
@@ -78,7 +86,7 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
   };
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div onClick={() => inputRef.current?.focus()} style={{ width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* Header */}
       <div style={{
         background: 'var(--surface)',
@@ -110,7 +118,7 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
               position: 'absolute', inset: 0,
               background: 'var(--primary-bg)',
               borderRadius: 10,
-            }}/>
+            }} />
 
             {/* Ícono de barras */}
             <div style={{
@@ -128,20 +136,28 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
               boxShadow: '0 0 10px 2px var(--primary)',
               borderRadius: 1,
               animation: 'scanLine 2s ease-in-out infinite',
-            }}/>
+            }} />
 
             {/* Esquinas — top-left */}
-            <div style={{ position: 'absolute', top: 0, left: 0, width: 18, height: 18,
-              borderTop: '3px solid var(--primary)', borderLeft: '3px solid var(--primary)', borderRadius: '4px 0 0 0' }}/>
+            <div style={{
+              position: 'absolute', top: 0, left: 0, width: 18, height: 18,
+              borderTop: '3px solid var(--primary)', borderLeft: '3px solid var(--primary)', borderRadius: '4px 0 0 0'
+            }} />
             {/* Esquinas — top-right */}
-            <div style={{ position: 'absolute', top: 0, right: 0, width: 18, height: 18,
-              borderTop: '3px solid var(--primary)', borderRight: '3px solid var(--primary)', borderRadius: '0 4px 0 0' }}/>
+            <div style={{
+              position: 'absolute', top: 0, right: 0, width: 18, height: 18,
+              borderTop: '3px solid var(--primary)', borderRight: '3px solid var(--primary)', borderRadius: '0 4px 0 0'
+            }} />
             {/* Esquinas — bottom-left */}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, width: 18, height: 18,
-              borderBottom: '3px solid var(--primary)', borderLeft: '3px solid var(--primary)', borderRadius: '0 0 0 4px' }}/>
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, width: 18, height: 18,
+              borderBottom: '3px solid var(--primary)', borderLeft: '3px solid var(--primary)', borderRadius: '0 0 0 4px'
+            }} />
             {/* Esquinas — bottom-right */}
-            <div style={{ position: 'absolute', bottom: 0, right: 0, width: 18, height: 18,
-              borderBottom: '3px solid var(--primary)', borderRight: '3px solid var(--primary)', borderRadius: '0 0 4px 0' }}/>
+            <div style={{
+              position: 'absolute', bottom: 0, right: 0, width: 18, height: 18,
+              borderBottom: '3px solid var(--primary)', borderRight: '3px solid var(--primary)', borderRadius: '0 0 4px 0'
+            }} />
           </div>
 
           <h1 style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.04em', marginBottom: 8 }}>
@@ -256,8 +272,8 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
               fontSize: 15, fontWeight: 800, cursor: (!code.trim() || busy) ? 'not-allowed' : 'pointer',
               transition: 'background 0.15s', letterSpacing: '0.01em',
             }}
-            onMouseEnter={e => { if (code.trim() && !busy) e.currentTarget.style.background = 'var(--primary-dark)'; }}
-            onMouseLeave={e => { if (code.trim() && !busy) e.currentTarget.style.background = 'var(--primary)'; }}
+              onMouseEnter={e => { if (code.trim() && !busy) e.currentTarget.style.background = 'var(--primary-dark)'; }}
+              onMouseLeave={e => { if (code.trim() && !busy) e.currentTarget.style.background = 'var(--primary)'; }}
             >
               {busy ? 'Buscando…' : 'Consultar precio'}
             </button>
@@ -266,4 +282,6 @@ export default function ScanScreen({ storeName, onResult }: ScanScreenProps) {
       </div>
     </div>
   );
-}
+});
+
+export default ScanScreen;

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import ScreenSaver from "../components/ScreenSaver";
 import BranchLoginScreen from "../components/BranchLoginScreen";
-import ScanScreen from "../components/ScanScreen";
+import ScanScreen, { ScanScreenHandle } from "../components/ScanScreen";
 import ResultScreen from "../components/ResultScreen";
 import MaintenanceScreen from "../components/MaintenanceScreen";
 import { Location, Product } from "../lib/types";
@@ -16,6 +16,7 @@ export default function Home() {
   const [screensaver, setScreensaver] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const idleRef = useRef<NodeJS.Timeout | null>(null);
+  const scanScreenRef = useRef<ScanScreenHandle>(null);
 
   const resetIdle = useCallback(() => {
     if (idleRef.current) clearTimeout(idleRef.current);
@@ -55,6 +56,12 @@ export default function Home() {
     setScreensaver(false);
     if (idleRef.current) clearTimeout(idleRef.current);
     idleRef.current = setTimeout(() => setScreensaver(true), IDLE_TIMEOUT * 1000);
+    setTimeout(() => scanScreenRef.current?.focusInput(), 80);
+  };
+
+  const handleLogin = (location: Location) => {
+    setBranch(location);
+    setTimeout(() => scanScreenRef.current?.focusInput(), 80);
   };
 
   const storeName = branch ? `Ariat — ${branch.name}` : 'Ariat';
@@ -95,19 +102,20 @@ export default function Home() {
       {product ? (
         <ResultScreen
           key={product.name}
-          product={product} 
-          onBack={() => setProduct(null)} 
-          storeName={storeName} 
+          product={product}
+          onBack={() => { setProduct(null); setTimeout(() => scanScreenRef.current?.focusInput(), 80); }}
+          storeName={storeName}
         />
       ) : (
-        <ScanScreen 
-          onResult={setProduct} 
-          storeName={storeName} 
+        <ScanScreen
+          ref={scanScreenRef}
+          onResult={setProduct}
+          storeName={storeName}
         />
       )}
-      
+
       {!branch && !screensaver && (
-        <BranchLoginScreen onLogin={setBranch} />
+        <BranchLoginScreen onLogin={handleLogin} />
       )}
       
       {screensaver && (

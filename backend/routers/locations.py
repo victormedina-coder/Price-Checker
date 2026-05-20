@@ -22,7 +22,7 @@ async def get_locations(x_brand: str = Header(default="")):
             "isActive": edge["node"]["isActive"],
         }
         for edge in data["data"]["locations"]["edges"]
-        if edge["node"]["isActive"]
+        if edge["node"]["isActive"] and edge["node"]["id"] in brand_cfg.location_pins
     ]
 
 

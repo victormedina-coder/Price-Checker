@@ -6,6 +6,13 @@ export interface Location {
     isActive: boolean;
 }
 
+export interface StockBySize {
+    size: string;
+    location_id: string;
+    location_name: string;
+    available: number;
+}
+
 export interface Product {
     name: string;
     sku: string | null;
@@ -21,6 +28,7 @@ export interface Product {
     all_sizes: string[];
     available_sizes: string[];
     stock: Stock[];
+    stock_by_size: StockBySize[];
     metafields: Record<string, string>;
 }
 

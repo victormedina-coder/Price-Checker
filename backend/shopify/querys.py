@@ -60,6 +60,22 @@ query ProductByBarcode($barcode: String!) {
                   name
                   value
                 }
+                inventoryItem {
+                  inventoryLevels(first: 20) {
+                    edges {
+                      node {
+                        quantities(names: ["available"]) {
+                          name
+                          quantity
+                        }
+                        location {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           }

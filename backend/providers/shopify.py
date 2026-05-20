@@ -47,14 +47,29 @@ class ShopifyProductAdapter(ProductProvider):
                     break
 
         available_sizes = []
+        stock_by_size: list[dict] = []
         for v_edge in product["variants"]["edges"]:
             v      = v_edge["node"]
             v_opts = {o["name"]: o["value"] for o in v["selectedOptions"]}
             same_color = color is None or v_opts.get("Color") == color
-            if same_color and v["availableForSale"] and size_option_name:
-                v_size = v_opts.get(size_option_name)
-                if v_size:
-                    available_sizes.append(v_size)
+            if not same_color:
+                continue
+            v_size = v_opts.get(size_option_name) if size_option_name else None
+            if v["availableForSale"] and v_size:
+                available_sizes.append(v_size)
+            # Inventario por talla y sucursal
+            if v_size and "inventoryItem" in v and v["inventoryItem"]:
+                for inv_edge in v["inventoryItem"]["inventoryLevels"]["edges"]:
+                    inv = inv_edge["node"]
+                    qty = next(
+                        (q["quantity"] for q in inv["quantities"] if q["name"] == "available"), 0
+                    )
+                    stock_by_size.append({
+                        "size":          v_size,
+                        "location_id":   inv["location"]["id"],
+                        "location_name": inv["location"]["name"],
+                        "available":     qty,
+                    })
 
         all_images = [e["node"]["url"] for e in product["images"]["edges"]]
         if color:
@@ -98,5 +113,6 @@ class ShopifyProductAdapter(ProductProvider):
             "all_sizes":        all_sizes,
             "available_sizes":  available_sizes,
             "stock":            stock,
+            "stock_by_size":    stock_by_size,
             "metafields":       metafields,
         }

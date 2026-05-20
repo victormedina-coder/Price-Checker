@@ -131,9 +131,15 @@ interface ResultScreenProps {
 
 export default function ResultScreen({ product, onBack, storeName }: ResultScreenProps) {
   const [secs, setSecs] = useState(TIMER_SECONDS);
+  const [selectedSize, setSelectedSize] = useState<string | null>(product.size);
   const hasSale = product.priceSale !== null;
   const discount = hasSale && product.priceSale ? Math.round((1 - product.priceSale / product.price) * 100) : 0;
-  const totalStock = product.stock.reduce((a, b) => a + b.available, 0);
+
+  // Filtrar stock por talla seleccionada
+  const filteredStock = selectedSize && product.stock_by_size
+    ? product.stock_by_size.filter(s => s.size === selectedSize)
+    : product.stock;
+  const totalStock = filteredStock.reduce((a, b) => a + b.available, 0);
 
   const fmt = (n: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
 
@@ -269,7 +275,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {product.all_sizes.map(sz => {
-                  const isCurrent = sz === product.size;
+                  const isSelected = sz === selectedSize;
                   const isAvailable = product.available_sizes?.includes(sz);
 
                   let bg = 'var(--surface)';
@@ -277,8 +283,9 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
                   let border = '1.5px solid var(--border)';
                   let textDeco = 'none';
                   let opacity = 1;
+                  let cursor = 'pointer';
 
-                  if (isCurrent) {
+                  if (isSelected) {
                     bg = 'var(--primary)';
                     color = 'white';
                     border = '1.5px solid var(--primary)';
@@ -287,18 +294,25 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
                     color = 'var(--text-light)';
                     textDeco = 'line-through';
                     opacity = 0.5;
+                    cursor = 'default';
                   }
 
                   return (
-                    <div key={sz} style={{
-                      background: bg, color, border,
-                      textDecoration: textDeco, opacity,
-                      borderRadius: 8, padding: '6px 12px',
-                      fontSize: 13, fontWeight: isCurrent ? 800 : 600,
-                      fontFamily: 'monospace',
-                    }}>
+                    <button
+                      key={sz}
+                      onClick={() => isAvailable && setSelectedSize(sz)}
+                      style={{
+                        background: bg, color, border,
+                        textDecoration: textDeco, opacity,
+                        borderRadius: 8, padding: '6px 12px',
+                        fontSize: 13, fontWeight: isSelected ? 800 : 600,
+                        fontFamily: 'monospace',
+                        cursor,
+                        transition: 'all 0.15s',
+                      }}
+                    >
                       {sz}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -309,14 +323,14 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
           <div className="slide-up slide-up-d4">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
-                Existencias por sucursal
+                Existencias por sucursal{selectedSize ? ` · Talla ${selectedSize}` : ''}
               </div>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>
                 {totalStock} total
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {product.stock.map(br => (
+              {filteredStock.map(br => (
                 <BranchRow
                   key={br.location_id}
                   branch={br}

@@ -108,8 +108,7 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
           <div style={{
             position: 'absolute', inset: 0,
             backgroundImage: 'radial-gradient(circle at 90% 10%, rgba(255,255,255,0.08), transparent 60%)',
-            pointerEvents: 'none',
-          }}/>
+          }} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ position: 'relative', height: 26, width: 408, flexShrink: 0, opacity: 0.95 }}>
               <Image src={logoBlanco} alt="Western Brothers" fill sizes="408px" style={{ objectFit: 'cover', objectPosition: 'center' }} />
@@ -125,7 +124,7 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
               const done = i === 0 && step === 'pin';
               return (
                 <React.Fragment key={i}>
-                  {i > 0 && <div style={{ flex: 1, height: 1.5, background: done ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.15)', borderRadius: 1 }}/>}
+                  {i > 0 && <div style={{ flex: 1, height: 1.5, background: done ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.15)', borderRadius: 1 }} />}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{
                       width: 22, height: 22, borderRadius: '50%',
@@ -171,8 +170,7 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
                     textAlign: 'left', cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}
-                  onMouseEnter={e => { if (selected?.id !== br.id) { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.background = 'var(--primary-bg)'; }}}
-                  onMouseLeave={e => { if (selected?.id !== br.id) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'var(--surface-alt)'; }}}
+                    onMouseEnter={e => { if (selected?.id !== br.id) { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.background = 'var(--primary-bg)'; } }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: selected?.id === br.id ? 'var(--primary)' : 'var(--text)' }}>{br.name}</div>
@@ -225,7 +223,7 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 gap: 16, marginBottom: 24,
               }}>
-                {[0,1,2,3].map(i => {
+                {[0, 1, 2, 3].map(i => {
                   const filled = i < pin.length;
                   const isError = error && !success;
                   return (
@@ -235,7 +233,7 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
                       border: `2.5px solid ${success ? 'var(--primary)' : isError ? 'var(--error)' : filled ? 'var(--text)' : 'var(--border)'}`,
                       transition: 'all 0.15s',
                       animation: shake ? `shake 0.5s ease` : 'none',
-                    }}/>
+                    }} />
                   );
                 })}
               </div>

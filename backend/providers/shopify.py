@@ -2,17 +2,23 @@ from fastapi import HTTPException
 from shopify.client import shopify_query_with_vars
 from shopify.querys import PRODUCT_BY_BARCODE_QUERY
 from providers.base import ProductProvider
+from config import BrandConfig
 
 
 class ShopifyProductAdapter(ProductProvider):
     """
     Adaptador (Adapter) — implementa ProductProvider usando la API de Shopify.
+    Recibe BrandConfig para soportar múltiples tiendas con un solo backend.
     """
+
+    def __init__(self, brand_cfg: BrandConfig) -> None:
+        self.brand_cfg = brand_cfg
 
     async def get_product(self, barcode: str) -> dict:
         data = await shopify_query_with_vars(
             PRODUCT_BY_BARCODE_QUERY,
             {"barcode": f"barcode:{barcode}"},
+            self.brand_cfg,
         )
         return self._parse(data)
 

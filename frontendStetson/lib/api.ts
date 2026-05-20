@@ -6,7 +6,10 @@ export class ServiceUnavailableError extends Error {}
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getLocations(){
-    const res = await fetch(`${API_URL}/locations`)
+    const res = await fetch(`${API_URL}/locations`, {
+        headers: { "X-Brand": process.env.NEXT_PUBLIC_BRAND! },
+    });
+    console.log(res);
     if (!res.ok) throw new Error("No se pudieron cargar las sucursales.");
     return res.json();
 }
@@ -14,7 +17,9 @@ export async function getLocations(){
 export async function authLocation(location_id: string, pin: string){
     const res = await fetch(`${API_URL}/locations/auth`, {
         method: "POST",
-        headers: {"content-type": "application/json"},
+        headers: {"content-type": "application/json",
+            "X-Brand": process.env.NEXT_PUBLIC_BRAND!,
+        },
         body: JSON.stringify({location_id, pin})
     });
 
@@ -31,6 +36,7 @@ export async function getProduct(barcode: string) {
     try {
         const res = await fetch(`${API_URL}/products/${barcode}`, {
             signal: controller.signal,
+            headers: { "X-Brand": process.env.NEXT_PUBLIC_BRAND! },
         });
         if (res.status === 404) throw new ProductNotFoundError("Producto no encontrado.");
         if (!res.ok)            throw new ServiceUnavailableError("Servicio no disponible.");

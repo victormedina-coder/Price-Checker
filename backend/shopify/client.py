@@ -2,29 +2,25 @@ import logging
 import time
 import httpx
 from fastapi import HTTPException
-from config import SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET, SHOPIFY_STORE_DOMAIN, GRAPHQL_URL
+from config import BrandConfig
 
 logger = logging.getLogger("price_checker.shopify")
 
-_token_cache: dict = {"access_token": None, "expires_at": 0}
+# Cache de tokens por marca: brand → {access_token, expires_at}
+_token_cache: dict[str, dict] = {}
 
 
-async def get_shopify_token() -> str:
+async def get_shopify_token(cfg: BrandConfig) -> str:
     now = time.time()
-    if _token_cache["access_token"] and now < _token_cache["expires_at"] - 60:
-        return _token_cache["access_token"]
+    cached = _token_cache.get(cfg.brand)
+    if cached and cached["access_token"] and now < cached["expires_at"] - 60:
+        return cached["access_token"]
 
-    if not SHOPIFY_CLIENT_ID or not SHOPIFY_CLIENT_SECRET or not SHOPIFY_STORE_DOMAIN:
-        raise HTTPException(
-            status_code=500,
-            detail="Error de configuracion. Verifique las variables de entorno.",
-        )
-
-    url = f"https://{SHOPIFY_STORE_DOMAIN}/admin/oauth/access_token"
+    url = f"https://{cfg.domain}/admin/oauth/access_token"
     payload = {
-        "grant_type": "client_credentials",
-        "client_id": SHOPIFY_CLIENT_ID,
-        "client_secret": SHOPIFY_CLIENT_SECRET,
+        "grant_type":    "client_credentials",
+        "client_id":     cfg.client_id,
+        "client_secret": cfg.client_secret,
     }
 
     async with httpx.AsyncClient() as client:
@@ -36,52 +32,60 @@ async def get_shopify_token() -> str:
         )
 
     if response.status_code != 200:
-        logger.error("Shopify rechazó token: status=%s body=%s", response.status_code, response.text[:200])
-        raise HTTPException(
-            status_code=502,
-            detail=f"Shopify rechazó la solicitud de token: {response.text}",
-        )
+        logger.error("Shopify [%s] rechazó token: status=%s body=%s", cfg.brand, response.status_code, response.text[:200])
+        raise HTTPException(status_code=502, detail=f"Shopify rechazó la solicitud de token para '{cfg.brand}'.")
 
     data = response.json()
-    _token_cache["access_token"] = data["access_token"]
-    _token_cache["expires_at"] = now + data.get("expires_in", 86400)
-    logger.info("Shopify token renovado (expira en %ds)", data.get("expires_in", 86400))
-
-    return _token_cache["access_token"]
-
-
-async def shopify_query(query: str) -> dict:
-    token = await get_shopify_token()
-    headers = {
-        "X-Shopify-Access-Token": token,
-        "Content-Type": "application/json",
+    _token_cache[cfg.brand] = {
+        "access_token": data["access_token"],
+        "expires_at":   now + data.get("expires_in", 86400),
     }
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            GRAPHQL_URL,
-            json={"query": query},
-            headers=headers,
-            timeout=10,
+    logger.info("Shopify [%s] token renovado (expira en %ds)", cfg.brand, data.get("expires_in", 86400))
+    return data["access_token"]
+
+
+def _graphql_url(cfg: BrandConfig) -> str:
+    return f"https://{cfg.domain}/admin/api/{cfg.api_version}/graphql.json"
+
+
+def _check_graphql_errors(data: dict, cfg: BrandConfig, context: str = "") -> None:
+    """Lanza HTTPException si la respuesta GraphQL contiene errores o data es None."""
+    if data.get("data") is None:
+        errors = data.get("errors", [])
+        messages = [e.get("message", "") for e in errors]
+        logger.error("Shopify [%s] GraphQL%s data=null errors=%s", cfg.brand, f" ({context})" if context else "", messages)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Shopify [{cfg.brand}] rechazó la consulta. Verifica los scopes de la app. Errores: {messages}",
         )
-    if response.status_code != 200:
-        logger.error("Shopify GraphQL error: status=%s", response.status_code)
-        raise HTTPException(status_code=502, detail="Error al consultar Shopify.")
-    return response.json()
 
-async def shopify_query_with_vars(query: str, variables: dict) -> dict:
-    token = await get_shopify_token()
-    headers = {
-        "X-Shopify-Access-Token": token,
-        "Content-Type": "application/json"
-    }
+
+async def shopify_query(query: str, cfg: BrandConfig) -> dict:
+    token = await get_shopify_token(cfg)
+    headers = {"X-Shopify-Access-Token": token, "Content-Type": "application/json"}
+    async with httpx.AsyncClient() as client:
+        response = await client.post(_graphql_url(cfg), json={"query": query}, headers=headers, timeout=10)
+    if response.status_code != 200:
+        logger.error("Shopify [%s] GraphQL error: status=%s", cfg.brand, response.status_code)
+        raise HTTPException(status_code=502, detail="Error al consultar Shopify.")
+    data = response.json()
+    _check_graphql_errors(data, cfg)
+    return data
+
+
+async def shopify_query_with_vars(query: str, variables: dict, cfg: BrandConfig) -> dict:
+    token = await get_shopify_token(cfg)
+    headers = {"X-Shopify-Access-Token": token, "Content-Type": "application/json"}
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            GRAPHQL_URL,
+            _graphql_url(cfg),
             json={"query": query, "variables": variables},
             headers=headers,
             timeout=10,
         )
     if response.status_code != 200:
-        logger.error("Shopify GraphQL (vars) error: status=%s vars=%s", response.status_code, variables)
+        logger.error("Shopify [%s] GraphQL (vars) error: status=%s vars=%s", cfg.brand, response.status_code, variables)
         raise HTTPException(status_code=502, detail="Error al consultar Shopify.")
-    return response.json()
+    data = response.json()
+    _check_graphql_errors(data, cfg, context=str(variables))
+    return data

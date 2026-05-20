@@ -8,7 +8,7 @@ import { getLocations, authLocation } from "../lib/api";
 import logoBlanco from "../assets/logos/WesternBrothers-Logotipo-Horizontal-Blanco.png";
 
 function PinKeypad({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
       {keys.map((k, i) => {

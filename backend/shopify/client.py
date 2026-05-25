@@ -11,6 +11,13 @@ _token_cache: dict[str, dict] = {}
 
 
 async def get_shopify_token(cfg: BrandConfig) -> str:
+    # ── TEMPORAL: si la marca tiene token estático (shpat_), usarlo directo ──
+    # Eliminar este bloque cuando todas las marcas tengan client_id/client_secret
+    if cfg.static_token:
+        logger.debug("Shopify [%s] usando token estático (shpat_)", cfg.brand)
+        return cfg.static_token
+    # ── FIN TEMPORAL ──
+
     now = time.time()
     cached = _token_cache.get(cfg.brand)
     if cached and cached["access_token"] and now < cached["expires_at"] - 60:

@@ -194,7 +194,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
         {/* RIGHT — Details */}
         <div style={{
           background: 'var(--surface-alt)',
-          overflowY: 'auto',
+          overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
           padding: '28px 28px 24px',
           gap: 20,
@@ -319,8 +319,8 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
           )}
 
           {/* Stock por sucursal */}
-          <div className="slide-up slide-up-d4">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div className="slide-up slide-up-d4" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexShrink: 0 }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
                 Existencias por sucursal{selectedSize ? ` · Talla ${selectedSize}` : ''}
               </div>
@@ -328,7 +328,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
                 {totalStock} total
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
               {filteredStock.map(br => (
                 <BranchRow
                   key={br.location_id}

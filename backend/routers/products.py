@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from config import DATA_SOURCE, get_brand_config, BrandConfig
 from providers.base import ProductProvider
 from providers.shopify import ShopifyProductAdapter
+from providers.gsheets import GoogleSheetsProductAdapter
 
 router = APIRouter(prefix="/products", tags=["products"])
 logger = logging.getLogger("price_checker.products")
@@ -33,11 +34,15 @@ def _cache_set(key: str, data: dict) -> None:
 
 def get_provider(brand_cfg: BrandConfig) -> ProductProvider:
     """
-    Factoría de proveedores — devuelve el adaptador correcto según DATA_SOURCE.
+    Factoría de proveedores — devuelve el adaptador correcto.
+    Usa el data_source de la marca si existe, si no usa el DATA_SOURCE global.
     """
-    if DATA_SOURCE == "shopify":
+    source = brand_cfg.data_source or DATA_SOURCE
+    if source == "shopify":
         return ShopifyProductAdapter(brand_cfg)
-    raise HTTPException(status_code=500, detail=f"DATA_SOURCE no soportado: {DATA_SOURCE}")
+    if source == "gsheets":
+        return GoogleSheetsProductAdapter(brand_cfg)
+    raise HTTPException(status_code=500, detail=f"DATA_SOURCE no soportado: {source}")
 
 
 @router.get("/{barcode}")
@@ -60,7 +65,8 @@ async def get_product(barcode: str, x_brand: str = Header(default="")):
         result = await provider.get_product(barcode)
         _cache_set(cache_key, result)
         ms = round((time.time() - start) * 1000)
-        logger.info("PROVIDER=%s brand=%s barcode=%s name=%r (%dms)", DATA_SOURCE, brand_cfg.brand, barcode, result.get("name"), ms)
+        source = brand_cfg.data_source or DATA_SOURCE
+        logger.info("PROVIDER=%s brand=%s barcode=%s name=%r (%dms)", source, brand_cfg.brand, barcode, result.get("name"), ms)
         return result
     except HTTPException as e:
         ms = round((time.time() - start) * 1000)

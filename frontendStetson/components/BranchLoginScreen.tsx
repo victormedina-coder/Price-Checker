@@ -157,32 +157,37 @@ export default function BranchLoginScreen({ onLogin }: BranchLoginScreenProps) {
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 16 }}>
                 Selecciona tu sucursal para continuar:
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {loading && (
-                  <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24, gridColumn: '1 / -1' }}>
-                    Cargando sucursales...
-                  </div>
-                )}
-                {!loading && locations.map(br => (
-                  <button key={br.id} onClick={() => { setSelected(br); setPin(''); setError(''); }} style={{
-                    background: selected?.id === br.id ? 'var(--primary-bg)' : 'var(--surface-alt)',
-                    border: `2px solid ${selected?.id === br.id ? 'var(--primary)' : 'var(--border)'}`,
-                    borderRadius: 14, padding: '16px 18px',
-                    textAlign: 'left', cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={e => { if (selected?.id !== br.id) { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.background = 'var(--primary-bg)'; }}}
-                  onMouseLeave={e => { if (selected?.id !== br.id) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'var(--surface-alt)'; }}}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: selected?.id === br.id ? 'var(--primary)' : 'var(--text)' }}>{br.name}</div>
-                      {selected?.id === br.id && (
-                        <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 11 }}>✓</div>
-                      )}
+              <div style={{
+                maxHeight: 170, overflowY: 'auto',
+                paddingRight: 4,
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  {loading && (
+                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24, gridColumn: '1 / -1' }}>
+                      Cargando sucursales...
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{br.city}</div>
-                  </button>
-                ))}
+                  )}
+                  {!loading && locations.map(br => (
+                    <button key={br.id} onClick={() => { setSelected(br); setPin(''); setError(''); }} style={{
+                      background: selected?.id === br.id ? 'var(--primary-bg)' : 'var(--surface-alt)',
+                      border: `2px solid ${selected?.id === br.id ? 'var(--primary)' : 'var(--border)'}`,
+                      borderRadius: 14, padding: '16px 18px',
+                      textAlign: 'left', cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => { if (selected?.id !== br.id) { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.background = 'var(--primary-bg)'; }}}
+                    onMouseLeave={e => { if (selected?.id !== br.id) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'var(--surface-alt)'; }}}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: selected?.id === br.id ? 'var(--primary)' : 'var(--text)' }}>{br.name}</div>
+                        {selected?.id === br.id && (
+                          <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 11 }}>✓</div>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{br.city}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
               <button
                 disabled={!selected}

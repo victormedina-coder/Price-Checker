@@ -152,7 +152,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
   }, [secs, onBack]);
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Header */}
       <div style={{
         background: 'var(--surface)', borderBottom: `1px solid var(--border)`,
@@ -329,9 +329,9 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
               </div>
             </div>
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {filteredStock.map(br => (
+              {filteredStock.map((br, i) => (
                 <BranchRow
-                  key={br.location_id}
+                  key={`${br.location_id}-${i}`}
                   branch={br}
                   isCurrentStore={storeName.includes(br.location_name)}
                 />
@@ -342,7 +342,7 @@ export default function ResultScreen({ product, onBack, storeName }: ResultScree
           {/* Timer notice */}
           <div className="slide-up" style={{
             animationDelay: '0.30s',
-            marginTop: 'auto', paddingTop: 8,
+            flexShrink: 0, paddingTop: 8,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: 8, color: secs <= 10 ? 'var(--error)' : 'var(--text-light)',
             fontSize: 12, fontWeight: 600,

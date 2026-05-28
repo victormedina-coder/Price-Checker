@@ -1,8 +1,12 @@
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Request
 from pydantic import BaseModel
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from shopify.client import shopify_query
 from shopify.querys import LOCATIONS_QUERY
 from config import get_brand_config, DATA_SOURCE
+
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(prefix="/locations", tags=["locations"])
 
@@ -63,7 +67,8 @@ class AuthRequest(BaseModel):
 
 
 @router.post("/auth")
-def auth_location(req: AuthRequest, x_brand: str = Header(default="")):
+@limiter.limit("5/15minutes")
+def auth_location(request: Request, req: AuthRequest, x_brand: str = Header(default="")):
     if not x_brand:
         raise HTTPException(status_code=400, detail="Header 'X-Brand' requerido.")
     brand_cfg = get_brand_config(x_brand)

@@ -1,4 +1,5 @@
 import logging
+import re
 import time
 
 from fastapi import APIRouter, Depends, HTTPException, Header
@@ -10,6 +11,9 @@ from providers.gsheets import GoogleSheetsProductAdapter
 
 router = APIRouter(prefix="/products", tags=["products"])
 logger = logging.getLogger("price_checker.products")
+
+# ── Validación de barcode (previene inyección en queries de Shopify) ──────────
+_BARCODE_RE = re.compile(r"^[A-Za-z0-9\-]{1,50}$")
 
 # ── Caché en memoria ──────────────────────────────────────────────────────────
 CACHE_TTL_SECONDS = 15 * 60  # 15 minutos
@@ -49,6 +53,8 @@ def get_provider(brand_cfg: BrandConfig) -> ProductProvider:
 async def get_product(barcode: str, x_brand: str = Header(default="")):
     if not x_brand:
         raise HTTPException(status_code=400, detail="Header 'X-Brand' requerido.")
+    if not _BARCODE_RE.match(barcode):
+        raise HTTPException(status_code=400, detail="Código de barras inválido.")
 
     brand_cfg = get_brand_config(x_brand)
     provider  = get_provider(brand_cfg)

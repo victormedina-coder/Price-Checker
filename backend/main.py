@@ -1,7 +1,12 @@
 import logging
+import os
 import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from routers import locations, products
 
 # ── Logging config ────────────────────────────────────────────────────────────
@@ -13,12 +18,29 @@ logging.basicConfig(
 logger = logging.getLogger("price_checker")
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ── Rate Limiter ─────────────────────────────────────────────────────────────
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(title="Price Checker API")
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Demasiados intentos. Intente de nuevo en unos minutos."},
+    )
+
+# ── CORS (orígenes desde variable de entorno) ────────────────────────────────
+_raw_origins = os.getenv("CORS_ORIGINS", "")
+_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()] if _raw_origins else ["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
+    allow_origins=_origins,
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 

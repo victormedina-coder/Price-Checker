@@ -63,7 +63,7 @@ def _check_graphql_errors(data: dict, cfg: BrandConfig, context: str = "") -> No
         logger.error("Shopify [%s] GraphQL%s data=null errors=%s", cfg.brand, f" ({context})" if context else "", messages)
         raise HTTPException(
             status_code=502,
-            detail=f"Shopify [{cfg.brand}] rechazó la consulta. Verifica los scopes de la app. Errores: {messages}",
+            detail="Error al consultar el catálogo. Intente de nuevo más tarde.",
         )
 
 

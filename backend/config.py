@@ -65,7 +65,7 @@ _BRANDS: dict[str, BrandConfig] = {
 def get_brand_config(brand: str) -> BrandConfig:
     cfg = _BRANDS.get(brand.lower())
     if not cfg:
-        raise HTTPException(status_code=400, detail=f"Marca no reconocida: '{brand}'. Valores válidos: {list(_BRANDS)}")
+        raise HTTPException(status_code=400, detail="Marca no reconocida.")
     # Validar credenciales según el data source de la marca
     effective_source = cfg.data_source or DATA_SOURCE
     if effective_source == "gsheets":

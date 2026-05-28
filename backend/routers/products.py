@@ -2,6 +2,7 @@ import logging
 import re
 import time
 
+from cachetools import TTLCache
 from fastapi import APIRouter, Depends, HTTPException, Header
 
 from config import DATA_SOURCE, get_brand_config, BrandConfig
@@ -15,23 +16,17 @@ logger = logging.getLogger("price_checker.products")
 # ── Validación de barcode (previene inyección en queries de Shopify) ──────────
 _BARCODE_RE = re.compile(r"^[A-Za-z0-9\-]{1,50}$")
 
-# ── Caché en memoria ──────────────────────────────────────────────────────────
+# ── Caché en memoria (máximo 1000 entradas, TTL 15 min) ──────────────────────
 CACHE_TTL_SECONDS = 15 * 60  # 15 minutos
-# clave: "brand:barcode" para aislar caché por marca
-_product_cache: dict[str, tuple[dict, float]] = {}
+_product_cache: TTLCache = TTLCache(maxsize=1000, ttl=CACHE_TTL_SECONDS)
 
 
 def _cache_get(key: str) -> dict | None:
-    entry = _product_cache.get(key)
-    if entry and time.time() < entry[1]:
-        return entry[0]
-    if entry:
-        del _product_cache[key]
-    return None
+    return _product_cache.get(key)
 
 
 def _cache_set(key: str, data: dict) -> None:
-    _product_cache[key] = (data, time.time() + CACHE_TTL_SECONDS)
+    _product_cache[key] = data
 
 # ─────────────────────────────────────────────────────────────────────────────
 

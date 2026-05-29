@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!API_URL) throw new Error("NEXT_PUBLIC_API_URL is not configured.");
 
 // ── Error types ──────────────────────────────────────────────────────────────
 export class ProductNotFoundError extends Error {}
@@ -9,7 +10,6 @@ export async function getLocations(){
     const res = await fetch(`${API_URL}/locations`, {
         headers: { "X-Brand": process.env.NEXT_PUBLIC_BRAND! },
     });
-    console.log(res);
     if (!res.ok) throw new Error("No se pudieron cargar las sucursales.");
     return res.json();
 }

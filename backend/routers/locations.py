@@ -12,7 +12,8 @@ router = APIRouter(prefix="/locations", tags=["locations"])
 
 
 @router.get("")
-async def get_locations(x_brand: str = Header(default="")):
+@limiter.limit("30/minute")
+async def get_locations(request: Request, x_brand: str = Header(default="")):
     if not x_brand:
         raise HTTPException(status_code=400, detail="Header 'X-Brand' requerido.")
     brand_cfg = get_brand_config(x_brand)

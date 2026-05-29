@@ -117,20 +117,6 @@ class GoogleSheetsProductAdapter(ProductProvider):
         handle = variant.get("handle", "")
         variant_sku = variant.get("variant_sku", "").strip()
 
-        # ── DEBUG: trazar datos de la variante escaneada ──
-        logger.info("DEBUG barcode=%s handle=%r sku=%r", barcode, handle, variant_sku)
-        logger.info("DEBUG variant keys: %s", list(variant.keys()))
-        logger.info("DEBUG inventory_by_sku keys (first 10): %s", list(data["inventory_by_sku"].keys())[:10])
-        scanned_debug_key = variant_sku or barcode
-        scanned_debug_inv = data["inventory_by_sku"].get(scanned_debug_key, [])
-        logger.info("DEBUG scanned_key=%r inv_rows=%d", scanned_debug_key, len(scanned_debug_inv))
-        if not scanned_debug_inv:
-            # Intentar buscar parcialmente
-            for k in list(data["inventory_by_sku"].keys())[:20]:
-                if barcode in k or k in barcode or (variant_sku and (variant_sku in k or k in variant_sku)):
-                    logger.info("DEBUG partial match found: inv_key=%r", k)
-        # ── FIN DEBUG ──
-
         # Obtener todas las variantes del mismo producto (mismo handle)
         same_product = []
         for bc_variants in data["barcode_index"].values():

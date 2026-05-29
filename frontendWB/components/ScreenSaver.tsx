@@ -10,15 +10,12 @@ interface ScreenSaverProps {
 }
 
 export default function ScreenSaver({ onDismiss }: ScreenSaverProps) {
-  const [time, setTime] = useState<Date | null>(null);
+  const [time, setTime] = useState(() => new Date());
 
   useEffect(() => {
-    setTime(new Date());
     const id = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
-
-  if (!time) return null;
 
   const hh = String(time.getHours()).padStart(2, '0');
   const mm = String(time.getMinutes()).padStart(2, '0');

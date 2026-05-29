@@ -14,7 +14,7 @@ export default function Home() {
   const [branch, setBranch] = useState<Location | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [screensaver, setScreensaver] = useState(false);
-  const [isOffline, setIsOffline] = useState(false);
+  const [isOffline, setIsOffline] = useState(() => typeof navigator !== 'undefined' ? !navigator.onLine : false);
   const idleRef = useRef<NodeJS.Timeout | null>(null);
   const scanScreenRef = useRef<ScanScreenHandle>(null);
 
@@ -39,10 +39,6 @@ export default function Home() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // Set inicial de estado de red
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      setIsOffline(true);
-    }
 
     return () => {
       events.forEach(e => window.removeEventListener(e, handleEvent));

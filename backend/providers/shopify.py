@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from shopify.client import shopify_query_with_vars
 from shopify.querys import PRODUCT_BY_BARCODE_QUERY
-from providers.base import ProductProvider
+from providers.base import ProductProvider, resolve_prices
 from config import BrandConfig
 
 
@@ -98,11 +98,13 @@ class ShopifyProductAdapter(ProductProvider):
             if e["node"]["namespace"] == "custom"
         }
 
+        price, price_sale = resolve_prices(float(node["price"]), node["compareAtPrice"])
+
         return {
             "name":             product["title"],
             "sku":              node["sku"],
-            "price":            float(node["price"]),
-            "priceSale":        float(node["compareAtPrice"]) if node["compareAtPrice"] else None,
+            "price":            price,
+            "priceSale":        price_sale,
             "vendor":           product["vendor"],
             "category":         product["productType"],
             "subcategory":      metafields.get("categoria"),

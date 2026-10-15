@@ -14,7 +14,7 @@ import logging
 import time
 import httpx
 from fastapi import HTTPException
-from providers.base import ProductProvider
+from providers.base import ProductProvider, resolve_prices
 from config import BrandConfig
 
 logger = logging.getLogger("price_checker.gsheets")
@@ -223,13 +223,7 @@ class GoogleSheetsProductAdapter(ProductProvider):
         except ValueError:
             price = 0.0
 
-        compare_at = variant.get("variant_compare_at_price", "").strip()
-        price_sale = None
-        if compare_at:
-            try:
-                price_sale = float(compare_at)
-            except ValueError:
-                pass
+        price, price_sale = resolve_prices(price, variant.get("variant_compare_at_price", ""))
 
         return {
             "name": variant.get("title", ""),

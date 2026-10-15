@@ -36,7 +36,7 @@ def _gsheet_csv_url(sheet_id: str, sheet_name: str) -> str:
     return f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={encoded}"
 
 
-async def _fetch_sheet_csv(sheet_id: str, sheet_name: str) -> list[dict]:
+async def _fetch_sheet_csv(sheet_id: str, sheet_name: str, required_column: str) -> list[dict]:
     """Descarga una hoja del Google Sheet como CSV y la parsea a lista de dicts."""
     import csv
     import io
@@ -49,9 +49,13 @@ async def _fetch_sheet_csv(sheet_id: str, sheet_name: str) -> list[dict]:
         logger.error("GSheets fetch failed: sheet=%s status=%s", sheet_name, response.status_code)
         raise HTTPException(status_code=502, detail=f"No se pudo leer la hoja '{sheet_name}' del Google Sheet.")
 
-    text = response.text
-    reader = csv.DictReader(io.StringIO(text))
-    return list(reader)
+    reader = csv.DictReader(io.StringIO(response.text))
+    rows = list(reader)
+    # Hoja privada / renombrada: Google puede responder 200 con HTML u otra hoja; no cachear eso como "catálogo vacío".
+    if required_column not in (reader.fieldnames or []):
+        logger.error("GSheets fetch: hoja '%s' sin columna '%s' (compartición revocada o hoja renombrada?)", sheet_name, required_column)
+        raise HTTPException(status_code=502, detail=f"La hoja '{sheet_name}' del Google Sheet no tiene el formato esperado.")
+    return rows
 
 
 async def _get_cached_data(cfg: BrandConfig) -> dict:
@@ -62,8 +66,8 @@ async def _get_cached_data(cfg: BrandConfig) -> dict:
         return cached
 
     logger.info("GSheets [%s] refrescando caché...", cfg.brand)
-    products = await _fetch_sheet_csv(cfg.gsheet_id, "Productos")
-    inventory = await _fetch_sheet_csv(cfg.gsheet_id, "Inventario")
+    products = await _fetch_sheet_csv(cfg.gsheet_id, "Productos", "variant_barcode")
+    inventory = await _fetch_sheet_csv(cfg.gsheet_id, "Inventario", "sku")
 
     # Indexar productos por barcode para búsqueda rápida
     barcode_index: dict[str, list[dict]] = {}

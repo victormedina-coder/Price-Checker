@@ -78,3 +78,19 @@ def get_brand_config(brand: str) -> BrandConfig:
         if not cfg.domain or (not has_oauth and not has_static):
             raise HTTPException(status_code=503, detail=f"Credenciales de '{brand}' no configuradas en el servidor.")
     return cfg
+
+
+def config_problems() -> list[str]:
+    """Errores de configuración detectables al arrancar, para fallar en el deploy y no en la primera petición."""
+    problems: list[str] = []
+    if DATA_SOURCE not in ("shopify", "gsheets"):
+        problems.append(f"DATA_SOURCE inválido: {DATA_SOURCE!r}")
+    for name, cfg in _BRANDS.items():
+        try:
+            get_brand_config(name)
+        except HTTPException as e:
+            problems.append(f"{name}: {e.detail}")
+            continue
+        if not cfg.location_pins:
+            problems.append(f"{name}: LOCATION_PINS_{name.upper()} vacío o sin formato 'location_id:pin'")
+    return problems

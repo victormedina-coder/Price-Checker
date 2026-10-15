@@ -8,6 +8,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from routers import locations, products
+from config import config_problems
 
 # ── Logging config ────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -21,7 +22,7 @@ logger = logging.getLogger("price_checker")
 # ── Rate Limiter ─────────────────────────────────────────────────────────────
 limiter = Limiter(key_func=get_remote_address)
 
-_is_prod = os.getenv("ENV", "development") == "production"
+_is_prod = os.getenv("ENV", "production") == "production"
 app = FastAPI(
     title="Price Checker API",
     docs_url=None if _is_prod else "/docs",
@@ -40,10 +41,16 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     )
 
 # ── CORS (orígenes desde variable de entorno) ────────────────────────────────
-_raw_origins = os.getenv("CORS_ORIGINS", "")
-if not _raw_origins:
-    logger.warning("CORS_ORIGINS no configurado — ningún origen permitido por defecto.")
-_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()] if _raw_origins else []
+_origins = [o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+_problems = config_problems()
+if not _origins:
+    _problems.append("CORS_ORIGINS vacío: ningún frontend podría consultar la API")
+_problems += [f"CORS_ORIGINS: origen sin http(s)://: {o!r}" for o in _origins if not o.startswith(("http://", "https://"))]
+for _p in _problems:
+    logger.error("CONFIG: %s", _p)
+if _problems and _is_prod:
+    raise RuntimeError("Configuración inválida, se aborta el arranque: " + "; ".join(_problems))
+logger.info("CORS_ORIGINS: %s", _origins)
 
 app.add_middleware(
     CORSMiddleware,

@@ -6,7 +6,14 @@ from shopify.client import shopify_query
 from shopify.querys import LOCATIONS_QUERY
 from config import get_brand_config, DATA_SOURCE
 
-limiter = Limiter(key_func=get_remote_address)
+def _client_ip(request: Request) -> str:
+    # Entrada más a la derecha de X-Forwarded-For: la añade el proxy de Railway.
+    # Las de la izquierda las controla el cliente. Sin cabecera (dev local): IP de la conexión.
+    xff = request.headers.get("x-forwarded-for", "")
+    return xff.rsplit(",", 1)[-1].strip() or get_remote_address(request)
+
+
+limiter = Limiter(key_func=_client_ip)
 
 router = APIRouter(prefix="/locations", tags=["locations"])
 

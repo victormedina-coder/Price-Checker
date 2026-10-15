@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useSyncExternalStore } from "react";
 import ScreenSaver from "../components/ScreenSaver";
 import BranchLoginScreen from "../components/BranchLoginScreen";
 import ScanScreen, { ScanScreenHandle } from "../components/ScanScreen";
@@ -10,11 +10,22 @@ import { Location, Product } from "../lib/types";
 
 const IDLE_TIMEOUT = 15; // seconds before screensaver
 
+const subscribeToConnection = (onChange: () => void) => {
+  window.addEventListener('online', onChange);
+  window.addEventListener('offline', onChange);
+  return () => {
+    window.removeEventListener('online', onChange);
+    window.removeEventListener('offline', onChange);
+  };
+};
+const getIsOffline = () => !navigator.onLine;
+const getServerIsOffline = () => false;
+
 export default function Home() {
   const [branch, setBranch] = useState<Location | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [screensaver, setScreensaver] = useState(false);
-  const [isOffline, setIsOffline] = useState(() => typeof navigator !== 'undefined' ? !navigator.onLine : false);
+  const isOffline = useSyncExternalStore(subscribeToConnection, getIsOffline, getServerIsOffline);
   const idleRef = useRef<NodeJS.Timeout | null>(null);
   const scanScreenRef = useRef<ScanScreenHandle>(null);
 
@@ -32,18 +43,8 @@ export default function Home() {
     events.forEach(e => window.addEventListener(e, handleEvent, { passive: true }));
     resetIdle();
     
-    // Manejo de conexión de red
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-
     return () => {
       events.forEach(e => window.removeEventListener(e, handleEvent));
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
       if (idleRef.current) clearTimeout(idleRef.current);
     };
   }, [resetIdle]);

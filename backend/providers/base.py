@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from math import isfinite
 
 
 class ProductProvider(ABC):
@@ -15,3 +16,14 @@ class ProductProvider(ABC):
         Lanza HTTPException 404 si no se encuentra.
         """
         ...
+
+
+def resolve_prices(price: float, compare_at: str | float | None) -> tuple[float, float | None]:
+    """compare_at es el precio original en Shopify: solo hay oferta si es mayor al precio que se cobra."""
+    try:
+        original = float(compare_at)
+    except (TypeError, ValueError):
+        return price, None
+    if price > 0 and isfinite(original) and original > price:
+        return original, price
+    return price, None

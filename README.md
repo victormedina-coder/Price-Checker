@@ -7,6 +7,8 @@
 
 Verificador de precios "Zero-Touch" para kioscos Android de 11 pulgadas con escáner de código de barras integrado (modo HID). Diseñado para piso de tienda: el cliente escanea — la app muestra precio, tallas e inventario multi-sucursal en tiempo real.
 
+> ⚠️ **Migración de Vercel a Railway en curso — borrar esta nota al completar el corte.** Hasta el corte, producción sigue en Vercel; durante la ventana de convivencia (5 días hábiles) `CORS_ORIGINS` lleva los orígenes de Vercel y de Railway, y el rollback es regresar la URL de cada kiosco a Vercel. Al cerrar, quitar de `CORS_ORIGINS` los de Vercel.
+
 ---
 
 ## Estructura del Repositorio
@@ -39,12 +41,12 @@ Price-Checker/
 
 | Capa           | Tecnología                                       |
 | -------------- | ------------------------------------------------ |
-| Frontend       | Next.js 15, React, CSS Variables (Design Tokens) |
+| Frontend       | Next.js 16, React, CSS Variables (Design Tokens) |
 | Backend        | FastAPI (Python 3.11+), httpx                    |
 | API de datos   | Shopify GraphQL Admin API `2024-04`              |
 | Patrón         | Arquitectura Hexagonal (Puertos y Adaptadores)   |
 | Caché          | In-memory dict con TTL de 15 minutos             |
-| Hosting (prod) | Vercel Pro (frontend) + Railway Hobby (backend)  |
+| Hosting (prod) | Railway Hobby (3 frontends + backend)            |
 
 ---
 
@@ -159,6 +161,9 @@ NEXT_PUBLIC_ERROR_TIMEOUT=2000
 
 # Modo mantenimiento — bloquea toda la app (true | false)
 NEXT_PUBLIC_MAINTENANCE=false
+
+# Marca del cliente (ariat | stetson | wb)
+NEXT_PUBLIC_BRAND=wb
 ```
 
 > ⚠️ Los archivos `.env` **nunca** deben commitearse. Están incluidos en `.gitignore`.
@@ -202,7 +207,7 @@ Para desactivar el kiosko ante un incidente crítico:
    ```env
    NEXT_PUBLIC_MAINTENANCE=true
    ```
-2. Reiniciar el servidor de desarrollo, o en producción (Vercel): actualizar la variable en el dashboard y hacer redeploy (~1 min).
+2. Reiniciar el servidor de desarrollo, o en producción (Railway): cambiar la variable en el servicio del cliente; el redeploy se dispara solo, pero es un rebuild de ~1-2 min (las `NEXT_PUBLIC_*` se incrustan en build, no en runtime).
 3. La pantalla "En Mantenimiento" bloqueará toda la app automáticamente.
 
 Para reactivar, cambiar de vuelta a `NEXT_PUBLIC_MAINTENANCE=false` y reiniciar.
@@ -238,24 +243,31 @@ Para reactivar, cambiar de vuelta a `NEXT_PUBLIC_MAINTENANCE=false` y reiniciar.
 
 ## Despliegue en Producción
 
-### Frontend → Vercel (Plan Pro)
+### Frontends → Railway (Plan Hobby)
 
-```bash
-# Instalar CLI de Vercel
-npm i -g vercel
+Tres servicios en el **mismo proyecto de Railway donde vive el backend**, creados desde el mismo repo de GitHub:
 
-# Desplegar (desde la carpeta del cliente)
-cd frontendWB
-vercel --prod
-```
+| Servicio | Root Directory    | Watch Paths          | `NEXT_PUBLIC_BRAND` |
+| -------- | ----------------- | -------------------- | ------------------- |
+| Ariat    | `frontend`        | `frontend/**`        | `ariat`             |
+| Stetson  | `frontendStetson` | `frontendStetson/**` | `stetson`           |
+| WB       | `frontendWB`      | `frontendWB/**`      | `wb`                |
 
-Configurar las variables de entorno (`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_RESULT_TIMEOUT`, `NEXT_PUBLIC_MAINTENANCE`) en el dashboard de Vercel → Settings → Environment Variables.
+- **Watch Paths:** se evalúan desde la raíz del repo, no desde el Root Directory; por eso llevan el prefijo de carpeta. Sin ellos, un push que toca un solo frontend redespliega los 4 servicios (comparten repo).
+- **Variables:** las `NEXT_PUBLIC_*` de la sección [Variables de Entorno](#variables-de-entorno), por servicio. `NEXT_PUBLIC_API_URL` apunta al dominio del backend en Railway.
+- **Build / Start:** automáticos (`npm run build` / `npm start`). No configurar `PORT` ni `NODE_ENV`: `next start` ya lee `PORT` y escucha en `0.0.0.0`.
+- **Healthcheck Path:** `/`.
+- **Dominio:** "Generate Domain" en cada servicio. No hay dominio propio: los kioscos usan el dominio generado, así que el nombre del servicio se vuelve la URL — nombrarlo corto y claro. Repuntar un kiosco es cambiar su URL.
+- **CORS:** `CORS_ORIGINS` del backend (lista separada por comas, sin wildcard; si falta, no se permite ningún origen) debe contener el origen de cada frontend desplegado, o ese frontend no podrá consultar la API.
+
+No se usa `output: "standalone"`, `Dockerfile`, `vercel.json` ni `railway.toml`: el despliegue es configuración de la plataforma.
 
 ### Backend → Railway (Plan Hobby)
 
 1. Conectar el repositorio de GitHub en Railway.
 2. Seleccionar la carpeta `backend/` como directorio raíz.
-3. Configurar las variables de entorno en Railway → Variables.
-4. Railway desplegará automáticamente en cada push a `main`.
+3. Watch Path `backend/**` (mismo motivo: evita redespliegues por cambios en los frontends).
+4. Configurar las variables de entorno en Railway → Variables.
+5. Railway desplegará automáticamente en cada push a `main`.
 
-**Costo mensual estimado:** $25 USD/mes (Vercel Pro $20 + Railway Hobby $5).
+**Costo mensual estimado:** por medir. El costo real de los 3 frontends en Railway aún no se conoce; confirmarlo con el primer ciclo de facturación (antes de la migración: $25 USD/mes, Vercel Pro $20 + Railway Hobby $5).
